@@ -348,6 +348,21 @@ impose.
 
 Ces données et logiciels restent la propriété de leurs auteurs. Citez-les si vous réutilisez ce travail.
 
----
+## 9. Références
 
-Merci à Claude pour la génération de ce code.
+FlyWire (le connectome)
+
+    - Dorkenwald S., Matsliah A., Sterling A.R., Schlegel P., Yu S., … & FlyWire Consortium (2024). Neuronal wiring diagram of an adult brain. Nature 634, 124–138. doi : 10.1038/s41586-024-07558-y
+    - Schlegel P., Yin Y., Bates A.S., Dorkenwald S., … & Jefferis G.S.X.E. (2024). Whole-brain annotation and multi-connectome cell typing of Drosophila. Nature 634, 139–152. doi : 10.1038/s41586-024-07686-5. C'est la source des types de neurones (MN9, fibre géante, DNa02…). Site du projet : flywire.ai
+
+Shiu et al. (le modèle du cerveau)
+
+-     Shiu P.K., Sterne G.R., Spiller N., Franconville R., … & Scott K. (2024). A Drosophila computational brain model reveals sensorimotor processing. Nature 634, 210–219. doi : 10.1038/s41586-024-07763-9, Code : github.com/philshiu/Drosophila_brain_model
+
+EPFL, laboratoire de Pavan Ramdya (le corps 3D et les mouvements)
+
+- Wang-Chen S., Stimpfling V.A., Lam T.K.C., Özdil P.G., Genoud L., Hurtak F., Ramdya P. (2024). NeuroMechFly v2: simulating embodied sensorimotor control in adult Drosophila. Nature Methods 21, 2353–2362. doi : 10.1038/s41592-024-02497-y. C'est le corps 3D et les pas enregistrés.
+- Lobato-Rios V., Ramalingasetty S.T., Özdil P.G., Arreguit J., Ijspeert A.J., Ramdya P. (2022). NeuroMechFly, a neuromechanical model of adult Drosophila melanogaster. Nature Methods 19, 620–627. doi : 10.1038/s41592-022-01466-7. C'est la source de l'enregistrement de toilette.
+- Günel S., Rhodin H., Morales D., Campagnolo J., Ramdya P., Fua P. (2019). DeepFly3D, a deep learning-based approach for 3D limb and appendage tracking in tethered, adult Drosophila. eLife 8, e48571. doi : 10.7554/eLife.48571. C'est la méthode qui a filmé la toilette en 3D.  Code : github.com/NeLy-EPFL/flygym et github.com/NeLy-EPFL/NeuroMechFly
+
+---
