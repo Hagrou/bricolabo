@@ -5,14 +5,14 @@ simulation en temps réel de **4 027 vrais neurones** issus du
 connectome FlyWire. Ses pas et sa toilette rejouent des **mouvements
 enregistrés sur de vraies mouches**.
 
-Tout tient dans un seul fichier : `arene-drosophile-local.html` (3,9
+Tout tient dans un seul fichier : `cyber_fly.html` (3,9
 Mo). Il fonctionne sans internet et sans rien installer.
 
 ---
 
 ## 1. Utilisation
 
-1. Double-cliquez sur `arene-drosophile-local.html`. Il s'ouvre dans Chrome, Edge ou Firefox (versions récentes).
+1. Double-cliquez sur `cyber_fly.html`. Il s'ouvre dans Chrome, Edge ou Firefox (versions récentes).
 2. Choisissez un objet sous la vue 3D, puis cliquez dans l'arène (dans la vue 3D ou sur le plan rond) pour le placer :
    - **Goutte sucrée** : si la mouche y pose la tête, elle s'arrête et tend la trompe.
    - **Goutte amère** : ne déclenche pas le repas.
