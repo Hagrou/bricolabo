@@ -5,7 +5,7 @@ simulation en temps réel de **4 027 vrais neurones** issus du
 connectome FlyWire. Ses pas et sa toilette rejouent des **mouvements
 enregistrés sur de vraies mouches**.
 
-Tout tient dans un seul fichier : `[cyber_fly.html](https://hagrou.github.io/bricolabo/cyber_fly/cyber_fly.html)` (3,9Mo). Il fonctionne sans internet et sans rien installer.
+Tout tient dans un seul fichier : [cyber_fly.html](https://hagrou.github.io/bricolabo/cyber_fly/cyber_fly.html) (3,9Mo). Il fonctionne sans internet et sans rien installer.
 
 ---
 
