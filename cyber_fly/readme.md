@@ -76,7 +76,8 @@ nouvelle.
 ## 3. Comment le cerveau a été construit
 
 ### 3.1 Le modèle d'origine
-Chaque neurone suit l'équation d'un intégrateur à fuite (*leaky integrate-and-fire*). Les constantes sont celles de Shiu et al. (2024) :
+
+Les constantes sont celles de Shiu et al. (2024) :
 
 - potentiel de repos −52 mV, seuil −45 mV, constante de membrane 20 ms ;
 - courant synaptique décroissant en 5 ms, délai synaptique 1,8 ms, période réfractaire 2,2 ms ;
@@ -99,7 +100,7 @@ fréquences sont surestimées de 30 à 50 %.
 ### 3.3 Le sous-cerveau
 
 Le cerveau complet (138 639 neurones, 15 millions de connexions) est
-trop lourd pour un navigateur. J'ai simulé des centaines de
+trop lourd pour un navigateur. Claude à simulé des centaines de
 combinaisons de stimulations sur le cerveau complet et retenu tous les
 neurones qui s'activent au moins une fois. Cela donne **4 027 neurones
 et 292 833 connexions**. Sur des tests indépendants, ce sous-cerveau
@@ -205,7 +206,10 @@ Le fichier est autonome : code, données et bibliothèque 3D y sont tous intégr
 - `groomFrame(t, q)` : lit l'extrait de toilette à l'instant `t` (en boucle).
 
 ### 5.5 Application (bloc 8)
-Le module charge Three.js depuis le bloc 2 (texte → `Blob` → `import()`), puis enchaîne à chaque image affichée (`requestAnimationFrame`) :
+
+Le module charge Three.js depuis le bloc 2 (texte → `Blob` →
+`import()`), puis enchaîne à chaque image affichée
+(`requestAnimationFrame`) :
 
 1. **`sense()`** : traduit la situation dans l'arène en fréquences sur les capteurs (tête sur une goutte → goût ; taille et côté de l'ombre → looming gauche ou droit ; souffle → antennes).
 2. **`brain.step()`** : simule le cerveau jusqu'à rattraper le temps réel, avec un budget d'environ 9 ms par image.
@@ -214,7 +218,13 @@ Le module charge Three.js depuis le bloc 2 (texte → `Blob` → `import()`), pu
 5. **`poseFly()`** : compose la posture (pas enregistrés, fondu vers la toilette, trompe, ailes), puis place la mouche dans l'arène.
 6. **Affichage** : rendu 3D, plan rond, cerveau, jauges et journal.
 
-Le même bloc gère aussi la nouvelle : `unlock(i)` ouvre un chapitre, dans l'ordre, et l'enregistre ; `renderStory()` affiche les chapitres ouverts et l'indice du suivant. Un petit programme de marche, déclenché de temps en temps, fait décrire à la mouche la trace du chapitre IV. C'est le seul mouvement de ce type, et il s'interrompt dès que le cerveau décide autre chose (manger, fuir, faire sa toilette).
+Le même bloc gère aussi la nouvelle : `unlock(i)` ouvre un chapitre,
+dans l'ordre, et l'enregistre ; `renderStory()` affiche les chapitres
+ouverts et l'indice du suivant. Un petit programme de marche,
+déclenché de temps en temps, fait décrire à la mouche la trace du
+chapitre IV. C'est le seul mouvement de ce type, et il s'interrompt
+dès que le cerveau décide autre chose (manger, fuir, faire sa
+toilette).
 
 Les constantes utiles à modifier se trouvent au début de ce bloc et dans `behave()` :
 - `R` : rayon de l'arène, 30 mm ;
@@ -278,26 +288,24 @@ Il faut rester lucide : **tout ce que montre cette page vient de vraies mouches.
 - La toilette enregistrée provient d'une mouche génétiquement modifiée, dont on activait les neurones par la lumière (optogénétique).
 - Les pas proviennent de mouches filmées sur une boule qui roule sous elles.
 
-La simulation ne remplace pas la recherche animale : elle en dépend et peut la rendre plus économe. Les insectes ne sont d'ailleurs pas couverts par la réglementation européenne sur l'expérimentation animale, ce qui rend la responsabilité des chercheurs d'autant plus importante.
+La simulation ne remplace pas la recherche animale : elle en dépend et
+peut la rendre plus économe. Les insectes ne sont d'ailleurs pas
+couverts par la réglementation européenne sur l'expérimentation
+animale, ce qui rend la responsabilité des chercheurs d'autant plus
+importante.
 
-### 7.3 L'honnêteté de la présentation
+### 7.3 Les usages détournés
 
-C'est l'enjeu le plus concret aujourd'hui, et il concerne quiconque partage cette page. Des titres comme « une mouche téléchargée dans un ordinateur » ou « un robot doté d'un vrai cerveau de mouche » sont trompeurs, car :
-- ils laissent croire qu'on sait reproduire un animal entier, alors qu'on reproduit un câblage partiel et simplifié ;
-- ils nourrissent des idées fausses sur le « téléchargement de l'esprit » (*mind uploading*) ;
-- ils peuvent entamer la confiance du public envers la recherche quand la réalité se révèle plus modeste.
+Les circuits d'insectes inspirent la robotique et les drones : fuite
+devant une menace, évitement d'obstacles, navigation économe en
+énergie. Ces usages sont surtout bénéfiques (robots de recherche et de
+sauvetage, systèmes à faible consommation), mais les mêmes idées
+peuvent servir à des drones militaires ou de surveillance. Pour ce
+projet, le risque est faible et diffus : les principes sont publiés
+depuis longtemps, et la page n'apporte aucune capacité nouvelle. Il
+reste utile d'en avoir conscience quand on fait évoluer ces outils.
 
-Cette page distingue donc ce qui vient du connectome, ce qui a été
-enregistré et ce qui a été programmé (section 2, et l'étiquette
-affichée en haut de la vue 3D). En la partageant, gardez ces nuances,
-citez les limites (section 6) et ne présentez pas la page comme « la
-mouche entière dans l'ordinateur ».
-
-### 7.4 Les usages détournés
-
-Les circuits d'insectes inspirent la robotique et les drones : fuite devant une menace, évitement d'obstacles, navigation économe en énergie. Ces usages sont surtout bénéfiques (robots de recherche et de sauvetage, systèmes à faible consommation), mais les mêmes idées peuvent servir à des drones militaires ou de surveillance. Pour ce projet, le risque est faible et diffus : les principes sont publiés depuis longtemps, et la page n'apporte aucune capacité nouvelle. Il reste utile d'en avoir conscience quand on fait évoluer ces outils.
-
-### 7.5 Vers les mammifères et l'être humain
+### 7.4 Vers les mammifères et l'être humain
 
 La même démarche progresse vite. Des connectomes de souris sont en cours, et des fragments de cortex humain ont déjà été cartographiés, par exemple un millimètre cube publié par Harvard et Google en 2024. Plusieurs questions restent ouvertes :
 - **Consentement** : le tissu humain provient de patients opérés ou de donneurs. Ont-ils consenti à ce que leur cerveau soit numérisé, publié, simulé ?
@@ -346,23 +354,23 @@ impose.
 - **Toilette enregistrée.** NeuroMechFly v1 (Lobato-Rios et al., *Nature Methods* 2022), données DeepFly3D : <https://github.com/NeLy-EPFL/NeuroMechFly>.
 - **Moteur 3D.** Three.js 0.169 (MIT) : <https://threejs.org>.
 
-Ces données et logiciels restent la propriété de leurs auteurs. Citez-les si vous réutilisez ce travail.
+Ces données et logiciels restent la propriété de leurs auteurs. 
 
 ## 9. Références
 
-FlyWire (le connectome)
+**FlyWire (le connectome)**
 
-    - Dorkenwald S., Matsliah A., Sterling A.R., Schlegel P., Yu S., … & FlyWire Consortium (2024). Neuronal wiring diagram of an adult brain. Nature 634, 124–138. doi : 10.1038/s41586-024-07558-y
-    - Schlegel P., Yin Y., Bates A.S., Dorkenwald S., … & Jefferis G.S.X.E. (2024). Whole-brain annotation and multi-connectome cell typing of Drosophila. Nature 634, 139–152. doi : 10.1038/s41586-024-07686-5. C'est la source des types de neurones (MN9, fibre géante, DNa02…). Site du projet : flywire.ai
+- Dorkenwald S., Matsliah A., Sterling A.R., Schlegel P., Yu S., … & FlyWire Consortium (2024). Neuronal wiring diagram of an adult brain. Nature 634, 124–138. doi : 10.1038/s41586-024-07558-y
+- Schlegel P., Yin Y., Bates A.S., Dorkenwald S., … & Jefferis G.S.X.E. (2024). Whole-brain annotation and multi-connectome cell typing of Drosophila. Nature 634, 139–152. doi : 10.1038/s41586-024-07686-5. C'est la source des types de neurones (MN9, fibre géante, DNa02…). Site du projet : flywire.ai
 
-Shiu et al. (le modèle du cerveau)
+**Shiu et al. (le modèle du cerveau)**
 
--     Shiu P.K., Sterne G.R., Spiller N., Franconville R., … & Scott K. (2024). A Drosophila computational brain model reveals sensorimotor processing. Nature 634, 210–219. doi : 10.1038/s41586-024-07763-9, Code : github.com/philshiu/Drosophila_brain_model
+- Shiu P.K., Sterne G.R., Spiller N., Franconville R., … & Scott K. (2024). A Drosophila computational brain model reveals sensorimotor processing. Nature 634, 210–219. doi : 10.1038/s41586-024-07763-9, Code : github.com/philshiu/Drosophila_brain_model
 
-EPFL, laboratoire de Pavan Ramdya (le corps 3D et les mouvements)
+**EPFL, laboratoire de Pavan Ramdya (le corps 3D et les mouvements)**
 
 - Wang-Chen S., Stimpfling V.A., Lam T.K.C., Özdil P.G., Genoud L., Hurtak F., Ramdya P. (2024). NeuroMechFly v2: simulating embodied sensorimotor control in adult Drosophila. Nature Methods 21, 2353–2362. doi : 10.1038/s41592-024-02497-y. C'est le corps 3D et les pas enregistrés.
 - Lobato-Rios V., Ramalingasetty S.T., Özdil P.G., Arreguit J., Ijspeert A.J., Ramdya P. (2022). NeuroMechFly, a neuromechanical model of adult Drosophila melanogaster. Nature Methods 19, 620–627. doi : 10.1038/s41592-022-01466-7. C'est la source de l'enregistrement de toilette.
 - Günel S., Rhodin H., Morales D., Campagnolo J., Ramdya P., Fua P. (2019). DeepFly3D, a deep learning-based approach for 3D limb and appendage tracking in tethered, adult Drosophila. eLife 8, e48571. doi : 10.7554/eLife.48571. C'est la méthode qui a filmé la toilette en 3D.  Code : github.com/NeLy-EPFL/flygym et github.com/NeLy-EPFL/NeuroMechFly
 
----
+
