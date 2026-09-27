@@ -7,6 +7,7 @@ enregistrés sur de vraies mouches**.
 
 Tout tient dans un seul fichier : [cyber_fly.html](https://hagrou.github.io/bricolabo/cyber_fly/cyber_fly.html) (3,9Mo). Il fonctionne sans internet et sans rien installer.
 
+(merci à Claude pourn son assistance)
 ---
 
 ## 1. Utilisation
@@ -105,6 +106,23 @@ neurones qui s'activent au moins une fois. Cela donne **4 027 neurones
 et 292 833 connexions**. Sur des tests indépendants, ce sous-cerveau
 reproduit les fréquences du cerveau complet (corrélation 1,000).
 
+**Le principe : un neurone silencieux n'a aucune influence.** Dans ce modèle, un neurone au repos n'a pas d'activité spontanée. Il n'agit sur ses voisins que lorsqu'il émet une impulsion. Un neurone qui ne s'active jamais dans une situation donnée n'a donc aucun effet sur le reste, quel que soit son nombre de connexions : on peut le retirer sans changer le résultat.
+
+**La méthode**
+
+1. **Simuler le cerveau complet** dans 36 situations, avec 4 essais chacune, grâce au simulateur en C validé contre le code des auteurs :
+   - chaque stimulation seule (sucre, amer, antennes, ombre à gauche, ombre à droite), à 5 intensités (40 à 200 Hz) ;
+   - toutes les paires de stimulations, à 150 Hz ;
+   - les cinq stimulations à la fois.
+2. **Garder tout neurone qui émet au moins une impulsion** dans au moins une situation. L'union grossit vite, puis se stabilise : les dernières combinaisons n'ajoutaient plus que 1 à 57 neurones. On obtient 4 023 neurones, plus les neurones de sortie surveillés, soit **4 027 neurones**.
+3. **Garder uniquement les connexions entre ces neurones**, avec leur nombre exact de synapses et leur signe : **292 833 connexions**, soit environ 2 % du total. Les données du cerveau tiennent ainsi dans 1,2 Mo.
+
+**La vérification.** Claude dit avoir comparé le sous-cerveau et le cerveau complet sur 7 situations nouvelles, avec des intensités et des combinaisons non utilisées pour la sélection. Avec le même tirage aléatoire, les résultats sont identiques : corrélation de 1,000, et MN9 à 50,8 Hz dans les deux cas pour le sucre à 100 Hz. Sur l'ensemble de ces tests, la seule différence est **une impulsion isolée** émise par le cerveau complet hors du sous-réseau.
+
+**Limites de l'élagage**
+- Le sous-cerveau n'est exact que pour les stimulations prévues. Ajouter l'odorat ou la vision complète demanderait de refaire la sélection. Une odeur active à elle seule environ 8 900 neurones, ce qui explique en partie qu'elle n'ait pas été intégrée.
+- Une combinaison très inhabituelle pourrait activer quelques neurones proches de leur seuil qui ne sont pas dans la sélection. D'après les tests, cet effet est négligeable.
+- La méthode fonctionne parce que le modèle n'a ni activité spontanée ni plasticité. Dans un modèle où chaque neurone émet en permanence un faible bruit de fond, on ne pourrait pas retirer aussi simplement les neurones silencieux.
 ### 3.4 Entrées et sorties
 
 | Entrée (capteur) | Neurones | Déclencheur dans l'arène |
