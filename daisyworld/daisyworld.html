@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daisyworld</title>
+<style>
+  :root {
+    --night: #0B1026;
+    --panel: #131A38;
+    --line: rgba(181, 192, 224, 0.18);
+    --ink: #FDFBF4;
+    --ink-soft: #B5C0E0;
+    --ink-mute: #8E97B8;
+    --warm: #F0997B;
+    --accent: #F2B01E;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--night); color: var(--ink); }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 28px 16px 48px; }
+  h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight: 400; font-size: 34px; margin: 0 0 4px; letter-spacing: 0.01em;
+  }
+  .sub { color: var(--ink-soft); margin: 0 0 20px; font-size: 15px; }
+  .scene-wrap {
+    border-radius: 18px; overflow: hidden; background: #080C1F;
+    border: 1px solid var(--line);
+  }
+  #scene { display: block; width: 100%; height: min(58vh, 520px, 86vw); min-height: 280px; touch-action: pan-y; }
+  .readout {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    padding: 6px 18px 16px;
+  }
+  .label { font-size: 12px; color: var(--ink-soft); }
+  #t-life {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 52px; line-height: 1.05; font-variant-numeric: tabular-nums lining-nums;
+  }
+  #t-dead { font-size: 20px; font-weight: 500; color: var(--warm); font-variant-numeric: tabular-nums; }
+  .row { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+  .row label, .row .glyph { font-size: 14px; color: var(--ink-soft); min-width: 46px; }
+  .row .glyph { font-size: 20px; min-width: 0; width: 20px; text-align: center; }
+  .row output { font-size: 14px; font-weight: 500; min-width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
+  input[type=range] { flex: 1; accent-color: var(--accent); height: 28px; margin: 0; }
+  .buttons { display: flex; gap: 8px; margin-top: 16px; }
+  button {
+    font: inherit; font-size: 15px; color: var(--ink); background: transparent;
+    border: 1px solid var(--line); border-radius: 10px; padding: 10px 16px; cursor: pointer;
+    min-height: 44px;
+  }
+  button:hover { background: rgba(181, 192, 224, 0.08); }
+  button:active { transform: scale(0.98); }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  #play { flex: 1; }
+  .bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 20px; }
+  .species { flex-wrap: wrap; margin-top: 24px; }
+  .species .lbl { font-size: 14px; color: var(--ink-soft); min-width: 46px; }
+  #species { display: flex; gap: 6px; }
+  #species button { min-width: 48px; padding: 8px 10px; }
+  #species button[aria-pressed="true"] { border-color: var(--accent); background: rgba(242, 176, 30, 0.14); }
+  .alive { margin-left: auto; font-size: 13px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .alive b { font-weight: 500; color: var(--ink); }
+  .bar-labels {
+    display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-soft);
+    margin-top: 6px; font-variant-numeric: tabular-nums;
+  }
+  .bar-labels b { font-weight: 500; color: var(--ink); }
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: var(--ink-soft); margin: 28px 0 8px; }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .legend i { display: inline-block; width: 16px; height: 0; }
+  #chart { display: block; width: 100%; height: 240px; }
+  footer { margin-top: 28px; font-size: 13px; color: var(--ink-mute); border-top: 1px solid var(--line); padding-top: 16px; }
+  footer p { margin: 0 0 8px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Daisyworld</h1>
+  <p class="sub">Une planète où des pâquerettes noires et blanches règlent le thermostat, sans le savoir.</p>
+
+  <div class="scene-wrap">
+    <canvas id="scene" role="img" aria-label="Système planétaire en orbite autour du soleil, avec zoom possible sur la planète fleurie"></canvas>
+    <div class="readout">
+      <div>
+        <div class="label">Température avec vie</div>
+        <div id="t-life">–</div>
+      </div>
+      <div style="text-align:right">
+        <div class="label">Sans vie</div>
+        <div id="t-dead">–</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <span class="glyph" aria-hidden="true">−</span>
+    <input type="range" id="zoom" min="0" max="1" step="0.01" value="0" aria-label="Zoom">
+    <span class="glyph" aria-hidden="true">+</span>
+  </div>
+  <div class="row">
+    <label for="lum">Soleil</label>
+    <input type="range" id="lum" min="0.5" max="1.8" step="0.01" value="0.9">
+    <output id="lum-out" for="lum">90 %</output>
+  </div>
+  <div class="buttons">
+    <button id="play" type="button">Faire vieillir le soleil</button>
+    <button id="reset" type="button">Réinitialiser</button>
+  </div>
+
+  <div class="row species">
+    <span class="lbl" id="species-lbl">Espèces</span>
+    <div id="species" role="group" aria-labelledby="species-lbl">
+      <button type="button" data-n="2" aria-pressed="true">2</button>
+      <button type="button" data-n="4" aria-pressed="false">4</button>
+      <button type="button" data-n="10" aria-pressed="false">10</button>
+      <button type="button" data-n="20" aria-pressed="false">20</button>
+    </div>
+    <span class="alive">En fleur : <b id="alive">–</b></span>
+  </div>
+
+  <div class="bar" id="bar" aria-hidden="true"></div>
+  <div class="bar-labels">
+    <span><span id="lbl-b">Noires</span> <b id="p-b">0 %</b></span>
+    <span>Sol nu <b id="p-g">100 %</b></span>
+    <span><span id="lbl-w">Blanches</span> <b id="p-w">0 %</b></span>
+  </div>
+
+  <div class="legend">
+    <span><i style="border-top:2px solid #2BC48D"></i><span id="leg-life">Avec 2 espèces</span></span>
+    <span id="leg-ref" style="display:none"><i style="border-top:2px dotted #B5C0E0"></i>Avec 2 espèces</span>
+    <span><i style="border-top:2px dashed #F0885A"></i>Planète morte</span>
+    <span><i style="width:10px;height:10px;border-radius:50%;background:#F2B01E"></i>État actuel</span>
+  </div>
+  <canvas id="chart" role="img" aria-label="Température de la planète selon la luminosité solaire, avec et sans pâquerettes"></canvas>
+
+  <footer>
+    <p>Modèle de Watson et Lovelock (1983) : albédo 0,75 pour les pâquerettes blanches, 0,25 pour les noires, 0,5 pour le sol nu ; croissance optimale à 22,5 °C.</p>
+    <p>Les deux planètes voisines sont décoratives : sans vie, leur couleur suit leur température d'équilibre. Tailles et distances ne sont pas à l'échelle.</p>
+    <p>Avec plus de deux espèces, les albédos sont répartis régulièrement entre 0,25 et 0,75 : ce sont des nuances de gris entre le noir et le blanc.</p>
+    <p>Astuce : la molette de la souris zoome aussi sur la scène.</p>
+  </footer>
+</main>
+
+<script>
+(function () {
+  // ---------- Modèle Daisyworld ----------
+  var S = 917, SIG = 5.67e-8, Q = 20, AW = 0.75, AB = 0.25, AG = 0.5, G = 0.3;
+
+  var NS = 2, ALB = [0.25, 0.75], SEED = 0.01;
+
+  function step(s, L, dt) {
+    var c = s.c, n = c.length, x = 1, A = 0, i;
+    for (i = 0; i < n; i++) { x -= c[i]; A += c[i] * ALB[i]; }
+    A += x * AG;
+    var Te = Math.pow(S * L * (1 - A) / SIG, 0.25);
+    for (i = 0; i < n; i++) {
+      var Ti = Q * (A - ALB[i]) + Te - 273.15;
+      var beta = Math.max(0, 1 - 0.003265 * Math.pow(22.5 - Ti, 2));
+      c[i] = Math.max(SEED, c[i] + dt * c[i] * (x * beta - G));
+    }
+    s.T = Te - 273.15;
+  }
+  function dead(L) { return Math.pow(S * L * 0.5 / SIG, 0.25) - 273.15; }
+  function seeds() { var c = []; for (var i = 0; i < NS; i++) c.push(SEED); return c; }
+
+  // Courbe de référence : balayage croissant de la luminosité
+  function sweep() {
+    var out = [], s = { c: seeds(), T: 0 };
+    for (var L = 0.5; L <= 1.801; L += 0.02) {
+      for (var i = 0; i < 1500; i++) step(s, L, 0.1);
+      out.push([L * 100, s.T]);
+    }
+    return out;
+  }
+  var bare = [];
+  for (var L0 = 0.5; L0 <= 1.801; L0 += 0.02) bare.push([L0 * 100, dead(L0)]);
+  var life = sweep(), life2 = life;
+
+  var st = { c: seeds(), T: 0 };
+  var LO = [], HI = [];
+  var L = 0.9, playing = false, zt = 0, zc = 0;
+
+  // ---------- Pâquerettes sur la sphère ----------
+  var N = 460, pts = [];
+  for (var i = 0; i < N; i++) {
+    var y = 1 - 2 * (i + 0.5) / N, r = Math.sqrt(1 - y * y), a = i * 2.399963;
+    var x = Math.cos(a) * r, z = Math.sin(a) * r;
+    pts.push({
+      x: x, y: y, z: z,
+      n: Math.sin(3 * x + 1) + 0.9 * Math.sin(4 * y + 2) + 0.8 * Math.sin(5 * z + 0.5) +
+         0.7 * Math.sin(2 * x + 3 * y - 2 * z) + Math.random() * 0.9,
+      r: 0, k: 0, g: 0, rot: Math.random() * 6.28
+    });
+  }
+  pts.slice().sort(function (p, q) { return p.n - q.n; }).forEach(function (p, i) { p.r = (i + 0.5) / N; });
+
+  function flower(pet, edge, ctr) {
+    var s = 160, c = document.createElement('canvas');
+    c.width = c.height = s;
+    var g = c.getContext('2d');
+    g.translate(s / 2, s / 2);
+    for (var i = 0; i < 10; i++) {
+      g.rotate(Math.PI / 5);
+      g.beginPath();
+      g.ellipse(0, -s * 0.27, s * 0.085, s * 0.2, 0, 0, 6.2832);
+      g.fillStyle = pet; g.fill();
+      g.strokeStyle = edge; g.lineWidth = 2.5; g.stroke();
+    }
+    g.beginPath(); g.arc(0, 0, s * 0.13, 0, 6.2832); g.fillStyle = ctr; g.fill();
+    return c;
+  }
+  var spr = [], dot = [], barCol = [];
+
+  var stars = [];
+  for (var k = 0; k < 140; k++) {
+    stars.push([Math.random(), Math.random(), 0.5 + Math.random() * 1.1, Math.random() * 6.28, 0.5 + Math.random() * 1.5]);
+  }
+
+  // ---------- Couleurs ----------
+  function mix(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; }
+  function ramp(stops, v) {
+    if (v <= stops[0][0]) return stops[0][1];
+    for (var i = 1; i < stops.length; i++) {
+      if (v <= stops[i][0]) return mix(stops[i - 1][1], stops[i][1], (v - stops[i - 1][0]) / (stops[i][0] - stops[i - 1][0]));
+    }
+    return stops[stops.length - 1][1];
+  }
+  function rgb(c, a) {
+    return 'rgba(' + Math.round(c[0]) + ',' + Math.round(c[1]) + ',' + Math.round(c[2]) + ',' + (a == null ? 1 : a) + ')';
+  }
+  var GROUND = [[-45, [150, 175, 210]], [-5, [78, 120, 150]], [12, [84, 140, 112]], [24, [96, 156, 84]],
+                [38, [150, 150, 74]], [52, [186, 128, 62]], [75, [150, 78, 44]], [130, [110, 52, 40]]];
+  var SUN = [[0.5, [226, 92, 40]], [0.9, [245, 160, 48]], [1.3, [252, 214, 120]], [1.8, [255, 246, 214]]];
+
+  // ---------- Scène ----------
+  var cv = document.getElementById('scene'), ctx = cv.getContext('2d');
+  var cc = document.getElementById('chart'), cg = cc.getContext('2d');
+  var dpr = 1;
+  function size() {
+    dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(cv.clientWidth * dpr); cv.height = Math.round(cv.clientHeight * dpr);
+    cc.width = Math.round(cc.clientWidth * dpr); cc.height = Math.round(cc.clientHeight * dpr);
+  }
+  size();
+  window.addEventListener('resize', function () { size(); draw(); drawChart(); });
+
+  var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var TILT = 0.4, DD = 120, RP = 9.5, SMAX = 20;
+  var others = [{ D: 66, R: 5.5, th: 1.2 }, { D: 172, R: 8, th: 4.1 }];
+  var ang = 0, t = 0, th = 0.6;
+  var ct = Math.cos(0.42), sn = Math.sin(0.42);
+
+  // Tranches de rang occupées par chaque espèce : sombres depuis le bas, claires depuis le haut
+  function bounds() {
+    var i, e, lo = 0, hi = 1, half = NS / 2, tiny = 0.012 / NS;
+    for (i = 0; i < half; i++) { e = st.c[i] <= SEED * 1.1 ? tiny : st.c[i]; LO[i] = lo; lo += e; HI[i] = lo; }
+    for (i = NS - 1; i >= half; i--) { e = st.c[i] <= SEED * 1.1 ? tiny : st.c[i]; HI[i] = hi; hi -= e; LO[i] = hi; }
+  }
+
+  function setSpecies(n) {
+    NS = n; SEED = 0.02 / n; ALB = []; spr = []; dot = []; barCol = [];
+    for (var i = 0; i < n; i++) {
+      var u = i / (n - 1);
+      ALB.push(0.25 + 0.5 * u);
+      var pet = mix([36, 26, 51], [253, 251, 244], u);
+      spr.push(flower(rgb(pet), rgb(mix([74, 53, 102], [207, 203, 184], u)), rgb(mix([212, 83, 126], [242, 176, 30], u))));
+      dot.push(rgb(pet));
+      barCol.push(rgb(mix([74, 53, 102], [253, 251, 244], u)));
+    }
+    st.c = seeds(); LO = []; HI = [];
+    pts.forEach(function (p) { p.k = 0; p.g = 0; });
+    life = sweep();
+    if (n === 2) life2 = life;
+  }
+
+  function body(px, py, R, gc, ux, uy, flowers) {
+    if (R > 5) {
+      var ac = mix(gc, [200, 225, 255], 0.6);
+      ctx.strokeStyle = rgb(ac, 0.14);
+      ctx.lineWidth = Math.min(8, R * 0.25);
+      ctx.beginPath(); ctx.arc(px, py, R + ctx.lineWidth * 0.7, 0, 6.2832); ctx.stroke();
+    }
+    ctx.save();
+    ctx.beginPath(); ctx.arc(px, py, R, 0, 6.2832); ctx.clip();
+    ctx.fillStyle = rgb(gc); ctx.fillRect(px - R, py - R, 2 * R, 2 * R);
+    ctx.fillStyle = rgb(mix(gc, [255, 255, 255], 0.12));
+    ctx.beginPath(); ctx.arc(px - ux * R * 0.4, py - uy * R * 0.4, R * 0.75, 0, 6.2832); ctx.fill();
+
+    if (flowers) {
+      var ca = Math.cos(ang), sa = Math.sin(ang);
+      bounds();
+      var big = R > 38, W = cv.clientWidth, H = cv.clientHeight;
+      for (var i = 0; i < N; i++) {
+        var p = pts[i];
+        var want = -1;
+        for (var j = 0; j < NS; j++) { if (p.r >= LO[j] && p.r < HI[j]) { want = j; break; } }
+        if (want === p.k) p.g += (1 - p.g) * 0.07;
+        else { p.g -= 0.05; if (p.g <= 0) { p.g = 0; if (want >= 0) p.k = want; } }
+        if (p.g <= 0.02) continue;
+        var x = p.x * ca + p.z * sa, z0 = -p.x * sa + p.z * ca;
+        var y = p.y * ct - z0 * sn, z = p.y * sn + z0 * ct;
+        if (z <= 0.03) continue;
+        var fx = px + x * R, fy = py - y * R;
+        if (big) {
+          var d = R * 0.2 * (0.4 + 0.6 * z) * p.g;
+          if (fx < -d || fx > W + d || fy < -d || fy > H + d) continue;
+          ctx.save();
+          ctx.translate(fx, fy);
+          ctx.rotate(Math.atan2(-y, x));
+          ctx.scale(0.25 + 0.75 * z, 1);
+          ctx.rotate(p.rot);
+          ctx.drawImage(spr[p.k], -d / 2, -d / 2, d, d);
+          ctx.restore();
+        } else {
+          ctx.fillStyle = dot[p.k];
+          ctx.beginPath();
+          ctx.arc(fx, fy, Math.max(0.7, R * 0.075 * (0.4 + 0.6 * z) * p.g), 0, 6.2832);
+          ctx.fill();
+        }
+      }
+    }
+    ctx.fillStyle = 'rgba(8,10,34,0.28)';
+    ctx.beginPath(); ctx.arc(px + ux * R * 0.62, py + uy * R * 0.62, R * 1.02, 0, 6.2832); ctx.fill();
+    ctx.fillStyle = 'rgba(8,10,34,0.36)';
+    ctx.beginPath(); ctx.arc(px + ux * R, py + uy * R, R * 1.02, 0, 6.2832); ctx.fill();
+    ctx.restore();
+  }
+
+  function draw() {
+    var W = cv.clientWidth, H = cv.clientHeight, ox = W / 2, oy = H / 2;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+
+    for (var i = 0; i < stars.length; i++) {
+      var s0 = stars[i];
+      ctx.fillStyle = 'rgba(230,236,255,' + (0.35 + 0.45 * Math.sin(t * 0.02 * s0[4] + s0[3])).toFixed(2) + ')';
+      ctx.beginPath(); ctx.arc(s0[0] * W, s0[1] * H, s0[2], 0, 6.2832); ctx.fill();
+    }
+
+    var fit = Math.min(W / 380, H / 200);
+    var s = Math.exp(Math.log(SMAX) * zc) * fit;
+    var pdx = DD * Math.cos(th), pdy = DD * Math.sin(th) * TILT;
+    var kk = 1 - (1 - zc) * fit / s;
+    var cxw = pdx * kk, cyw = pdy * kk;
+    function X(wx) { return ox + (wx - cxw) * s; }
+    function Y(wy) { return oy + (wy - cyw) * s; }
+    var sx = X(0), sy = Y(0);
+
+    var oa = Math.max(0, 0.22 - zc * 0.3);
+    if (oa > 0) {
+      ctx.strokeStyle = 'rgba(181,192,224,' + oa.toFixed(2) + ')';
+      ctx.lineWidth = 1;
+      [others[0].D, DD, others[1].D].forEach(function (D) {
+        ctx.beginPath(); ctx.ellipse(sx, sy, D * s, D * s * TILT, 0, 0, 6.2832); ctx.stroke();
+      });
+    }
+
+    var sc = ramp(SUN, L), sr = (9 + 9 * L) * s;
+    function drawSun() {
+      [[2.9, 0.05], [2.2, 0.09], [1.55, 0.16]].forEach(function (h) {
+        ctx.fillStyle = rgb(sc, h[1]);
+        ctx.beginPath(); ctx.arc(sx, sy, sr * h[0], 0, 6.2832); ctx.fill();
+      });
+      if (sx > -sr * 2 && sx < W + sr * 2 && sy > -sr * 2 && sy < H + sr * 2) {
+        ctx.strokeStyle = rgb(sc, 0.4); ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+        for (var i = 0; i < 14; i++) {
+          var a = i * 0.4488 + t * 0.003, r1 = sr * 1.25, r2 = sr * (1.6 + 0.25 * Math.sin(t * 0.03 + i * 1.7));
+          ctx.beginPath();
+          ctx.moveTo(sx + Math.cos(a) * r1, sy + Math.sin(a) * r1);
+          ctx.lineTo(sx + Math.cos(a) * r2, sy + Math.sin(a) * r2);
+          ctx.stroke();
+        }
+        ctx.fillStyle = rgb(sc);
+        ctx.beginPath(); ctx.arc(sx, sy, sr, 0, 6.2832); ctx.fill();
+      }
+    }
+
+    var items = [{ y: 0, f: drawSun }];
+    function add(wx, wy, R, gc, fl) {
+      var px = X(wx), py = Y(wy), ux = px - sx, uy = py - sy, m = Math.hypot(ux, uy) || 1;
+      ux /= m; uy /= m;
+      items.push({ y: wy, f: function () { body(px, py, R * s, gc, ux, uy, fl); } });
+      return [px, py];
+    }
+    others.forEach(function (o) {
+      add(o.D * Math.cos(o.th), o.D * Math.sin(o.th) * TILT, o.R, ramp(GROUND, dead(L * DD * DD / (o.D * o.D))), false);
+    });
+    var dp = add(pdx, pdy, RP, ramp(GROUND, st.T), true);
+    items.sort(function (a, b) { return a.y - b.y; }).forEach(function (it) { it.f(); });
+
+    var la = Math.max(0, 1 - zc * 4);
+    if (la > 0) {
+      ctx.fillStyle = 'rgba(181,192,224,' + la.toFixed(2) + ')';
+      ctx.font = '13px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Daisyworld', dp[0], dp[1] - RP * s - 9);
+    }
+  }
+
+  // ---------- Graphique ----------
+  function drawChart() {
+    var W = cc.clientWidth, H = cc.clientHeight;
+    var ml = 50, mr = 26, mt = 10, mb = 40;
+    var g = cg;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, W, H);
+    function PX(x) { return ml + (x - 50) / 130 * (W - ml - mr); }
+    function PY(y) { return mt + (80 - y) / 100 * (H - mt - mb); }
+
+    g.font = '12px system-ui, sans-serif';
+    g.fillStyle = '#8E97B8';
+    g.lineWidth = 1;
+    g.textAlign = 'right'; g.textBaseline = 'middle';
+    for (var y = -20; y <= 80; y += 20) {
+      g.strokeStyle = y === 0 ? 'rgba(181,192,224,0.32)' : 'rgba(181,192,224,0.10)';
+      g.beginPath(); g.moveTo(ml, PY(y)); g.lineTo(W - mr, PY(y)); g.stroke();
+      g.fillText(y + ' °C', ml - 8, PY(y));
+    }
+    g.textAlign = 'center'; g.textBaseline = 'top';
+    for (var x = 60; x <= 180; x += 20) g.fillText(x + ' %', PX(x), H - mb + 8);
+    g.fillText('Luminosité solaire', ml + (W - ml - mr) / 2, H - 16);
+
+    g.save();
+    g.beginPath(); g.rect(ml, mt, W - ml - mr, H - mt - mb); g.clip();
+
+    g.beginPath();
+    life.forEach(function (p, i) { if (i) g.lineTo(PX(p[0]), PY(p[1])); else g.moveTo(PX(p[0]), PY(p[1])); });
+    g.lineTo(PX(life[life.length - 1][0]), PY(0)); g.lineTo(PX(life[0][0]), PY(0)); g.closePath();
+    g.fillStyle = 'rgba(43,196,141,0.12)'; g.fill();
+
+    g.lineJoin = 'round'; g.lineCap = 'round'; g.lineWidth = 2;
+    g.strokeStyle = '#2BC48D';
+    g.beginPath();
+    life.forEach(function (p, i) { if (i) g.lineTo(PX(p[0]), PY(p[1])); else g.moveTo(PX(p[0]), PY(p[1])); });
+    g.stroke();
+
+    if (NS > 2) {
+      g.strokeStyle = '#B5C0E0'; g.lineWidth = 1.5; g.setLineDash([2, 5]);
+      g.beginPath();
+      life2.forEach(function (p, i) { if (i) g.lineTo(PX(p[0]), PY(p[1])); else g.moveTo(PX(p[0]), PY(p[1])); });
+      g.stroke();
+      g.lineWidth = 2;
+    }
+
+    g.strokeStyle = '#F0885A'; g.setLineDash([6, 5]);
+    g.beginPath();
+    bare.forEach(function (p, i) { if (i) g.lineTo(PX(p[0]), PY(p[1])); else g.moveTo(PX(p[0]), PY(p[1])); });
+    g.stroke();
+    g.setLineDash([]);
+    g.restore();
+
+    var cy = Math.max(-20, Math.min(80, st.T));
+    g.beginPath(); g.arc(PX(L * 100), PY(cy), 7, 0, 6.2832);
+    g.fillStyle = '#F2B01E'; g.fill();
+    g.lineWidth = 2; g.strokeStyle = '#0B1026'; g.stroke();
+  }
+
+  // ---------- Contrôles ----------
+  function $(id) { return document.getElementById(id); }
+  var sl = $('lum'), zs = $('zoom'), playBtn = $('play');
+  function fr(v) { return v.toFixed(1).replace('.', ',') + ' °C'; }
+
+  sl.addEventListener('input', function () { L = parseFloat(sl.value); });
+  zs.addEventListener('input', function () { zt = parseFloat(zs.value); });
+  cv.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    zt = Math.max(0, Math.min(1, zt - e.deltaY * 0.0012));
+    zs.value = zt.toFixed(2);
+  }, { passive: false });
+
+  function setPlay(p) {
+    playing = p;
+    playBtn.textContent = p ? 'Pause' : 'Faire vieillir le soleil';
+  }
+  playBtn.addEventListener('click', function () {
+    if (!playing && L >= 1.79) { L = 0.5; st.c = seeds(); }
+    setPlay(!playing);
+  });
+  $('reset').addEventListener('click', function () {
+    setPlay(false);
+    L = 0.9; sl.value = 0.9; st.c = seeds(); zt = 0; zs.value = 0;
+  });
+
+  var bar = $('bar'), spBtns = document.querySelectorAll('#species button');
+  function buildBar() {
+    var html = '', half = NS / 2, i;
+    for (i = 0; i < half; i++) html += '<div style="width:0;background:' + barCol[i] + '"></div>';
+    html += '<div style="flex:1;background:#6FA45A;margin:0 2px"></div>';
+    for (i = half; i < NS; i++) html += '<div style="width:0;background:' + barCol[i] + '"></div>';
+    bar.innerHTML = html;
+  }
+  function choose(n) {
+    setSpecies(n);
+    buildBar();
+    spBtns.forEach(function (b) { b.setAttribute('aria-pressed', String(parseInt(b.dataset.n, 10) === n)); });
+    $('lbl-b').textContent = n === 2 ? 'Noires' : 'Sombres';
+    $('lbl-w').textContent = n === 2 ? 'Blanches' : 'Claires';
+    $('leg-life').textContent = 'Avec ' + n + ' espèces';
+    $('leg-ref').style.display = n === 2 ? 'none' : 'flex';
+    f = 0;
+  }
+  spBtns.forEach(function (b) { b.addEventListener('click', function () { choose(parseInt(b.dataset.n, 10)); }); });
+
+  // ---------- Boucle ----------
+  var f = 0;
+  function loop() {
+    if (playing) {
+      L = Math.min(1.8, L + 0.0007);
+      sl.value = L.toFixed(2);
+      if (L >= 1.8) setPlay(false);
+    }
+    for (var i = 0; i < 8; i++) step(st, L, 0.05);
+    zc += (zt - zc) * 0.12;
+    if (!still) {
+      ang += 0.006; t++; th += 0.0035;
+      others.forEach(function (o) { o.th += 0.0035 * Math.pow(DD / o.D, 1.5); });
+    }
+    draw();
+    if (f++ % 5 === 0) {
+      var b = 0, w = 0, alive = 0, half = NS / 2, kids = bar.children;
+      for (var j = 0; j < NS; j++) {
+        var cj = st.c[j] <= SEED * 1.1 ? 0 : st.c[j];
+        if (cj > 0) alive++;
+        if (j < half) b += cj; else w += cj;
+        kids[j < half ? j : j + 1].style.width = (cj * 100).toFixed(1) + '%';
+      }
+      var pb = Math.round(b * 100), pw = Math.round(w * 100);
+      $('lum-out').textContent = Math.round(L * 100) + ' %';
+      $('t-life').textContent = fr(st.T);
+      $('t-dead').textContent = fr(dead(L));
+      $('p-b').textContent = pb + ' %';
+      $('p-w').textContent = pw + ' %';
+      $('p-g').textContent = (100 - pb - pw) + ' %';
+      $('alive').textContent = alive + ' sur ' + NS;
+      drawChart();
+    }
+    requestAnimationFrame(loop);
+  }
+  choose(2);
+  loop();
+})();
+</script>
+</body>
+</html>
