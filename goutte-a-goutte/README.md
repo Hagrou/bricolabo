@@ -8,7 +8,7 @@ Public visé : tout public. Aucune connaissance préalable n'est nécessaire.
 
 ## Lancer le jeu
 
-Ouvrez [goutte-a-goutte.html](https://hagrou.github.io/bricolabo/daisyworld/goutte-a-goutte.html) dans un navigateur récent (Chrome, Firefox, Safari, Edge). Il n'y a rien à installer.
+Ouvrez [goutte-a-goutte.html](https://hagrou.github.io/bricolabo/goutte-a-goutte/goutte-a-goutte.html) dans un navigateur récent (Chrome, Firefox, Safari, Edge). Il n'y a rien à installer.
 
 - Le fichier est autonome : tout le jeu tient dedans.
 - Il fonctionne hors connexion. Seules les polices d'écriture sont chargées depuis Internet ; sans connexion, le navigateur utilise ses polices par défaut.
