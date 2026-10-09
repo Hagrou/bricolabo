@@ -2,7 +2,7 @@
 
 Une planète imaginaire où des pâquerettes noires et blanches maintiennent la température stable alors que leur soleil chauffe de plus en plus, sans intention ni plan d'ensemble.
 
-Ce dossier contient [daisyworld.html](./daisyworld.html), une simulation interactive du modèle. Ouvrez le fichier dans un navigateur : il fonctionne sans connexion internet.
+Ce dossier contient [daisyworld.html](https://hagrou.github.io/bricolabo/cyber_fly/daisyworld.html), une simulation interactive du modèle. Ouvrez le fichier dans un navigateur : il fonctionne sans connexion internet.
 
 ## D'où vient ce modèle
 
