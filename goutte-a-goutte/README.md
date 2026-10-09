@@ -32,6 +32,8 @@ Une mission se déroule toujours de la même façon :
 4. **Lire le verdict.** Chaque objectif est comparé à une « référence » : la même météo sur le même terrain, sans aucun aménagement. En cas de réussite, un court texte résume ce qu'il faut retenir.
 5. **Réessayer** autant de fois qu'on veut. La courbe de l'essai précédent reste affichée pour comparer.
 
+Si l'on bloque, le bouton **Solution** de la fiche de mission donne une stratégie qui réussit, avec l'explication de pourquoi elle marche et de ce qui marcherait moins bien. Le bouton « Appliquer cette solution sur la carte » la pose directement ; il ne reste qu'à lancer la simulation pour la voir à l'œuvre.
+
 Le **bac à sable** donne tous les outils sans budget ni objectif, avec une météo au choix (manuelle, tempérée, sèche, orageuse, ou cycle fermé).
 
 ### Les instruments
@@ -59,7 +61,8 @@ Le **bac à sable** donne tous les outils sans budget ni objectif, avec une mét
 | Sol nu | Aucun | Ruissellement rapide, érosion |
 | Ville | Ce qu'il faut protéger des crues | Imperméable, renvoie tout vers l'aval |
 | Zone humide | Retient et épure l'eau | Forte évaporation |
-| Barrage | Posé d'un clic dans une vallée, il s'oriente tout seul en travers de l'écoulement, d'un versant à l'autre, avec une crête de niveau (2, 4 ou 6 m) ; l'aperçu montre son tracé, le sens de l'eau et la zone noyée | Noie les terres derrière lui, s'évapore ; refusé s'il ne s'appuie pas sur deux versants |
+| Barrage plein | Posé d'un clic dans une vallée, il s'oriente tout seul en travers de l'écoulement, d'un versant à l'autre, avec une crête de niveau (2, 4 ou 6 m) ; l'aperçu montre son tracé, le sens de l'eau et la zone noyée. Il retient tout jusqu'à déborder | Noie les terres derrière lui, coupe la rivière pendant qu'il se remplit, s'évapore ; refusé s'il ne s'appuie pas sur deux versants |
+| Barrage écrêteur | Même pose, avec un pertuis à sa base qui laisse passer jusqu'à 30 m³/s : la retenue ne se remplit qu'en crue, puis se vide | Doit être plus haut qu'un barrage plein pour la même crue ; 10 crédits de plus |
 | Remblai (+2 m) | Rehausse les cases peintes, pour une levée le long d'une rive | Renvoie l'eau ailleurs |
 | Creuser (−2 m) | Recueille le ruissellement, peut atteindre la nappe | S'évapore |
 | Haies et méandres | Freine l'eau sans changer le sol | Une rivière plus lente monte plus haut |
@@ -145,6 +148,7 @@ Le jeu a été construit par étapes, à partir de demandes successives.
 8. **Tous les outils partout, et la récolte.** Chaque mission donne accès à tous les aménagements. Pour garder le sens de chaque mission, deux objectifs ont été ajoutés là où un raccourci devenait possible : la mission 1 demande aussi de faire entrer plus de pluie dans le sol (sinon une simple digue suffisait), la mission 8 interdit les pompes (elle porte sur la pluie, pas sur l'irrigation). Une récolte calculée rend visible l'effet des haies et des inondations sur l'agriculture : une haie prend un peu de surface au champ mais abrite ses voisins, si bien que quelques haies bien réparties augmentent la récolte et qu'une plaine couverte de haies la réduit. La mission 2 demande d'en garder 95 %.
 9. **Tutoriel.** Un tutoriel intégré présente les notions de base avec des schémas, puis fait la visite guidée de l'écran.
 10. **Barrages orientés.** La première « digue » rehaussait les cases une à une : on ne voyait pas dans quel sens l'eau arrivait et la crête n'était pas de niveau. Elle est remplacée par un outil Barrage posé d'un clic, qui calcule lui-même la direction de la pente, barre la vallée d'un versant à l'autre et affiche avant la pose la zone qui sera noyée. Le rehaussement case par case reste disponible sous le nom de Remblai, pour les levées le long d'une rive.
+11. **Barrage écrêteur et solutions.** Ajout d'un barrage écrêteur, dont le pertuis laisse passer le débit normal : en mission 9, il évapore une quinzaine de fois moins d'eau qu'un barrage plein et garde un meilleur débit d'été, mais il doit être plus haut pour arrêter la même crue. Chaque mission a désormais un bouton « Solution » avec une stratégie expliquée, applicable d'un clic. Les neuf solutions ont été vérifiées par calcul puis jouées dans un navigateur de test : toutes réussissent leur mission dans le budget.
 
 ### Comment les missions ont été vérifiées
 
@@ -171,7 +175,7 @@ Exemples de résultats obtenus par calcul :
 
 Ce que le jeu simplifie au point de pouvoir induire en erreur :
 
-- **Les barrages** retiennent tout jusqu'à déborder. Il n'y a ni vanne, ni lâcher d'eau, ni débit réservé.
+- **Les barrages** sont de deux sortes seulement : plein (il retient tout jusqu'à déborder) ou écrêteur (pertuis fixe de 30 m³/s). Il n'y a pas de vanne manœuvrable.
 - **La nappe** réagit en quelques semaines. Une vraie nappe est souvent bien plus lente.
 - **Forêt contre prairie.** Dans les missions 6 et 8, la prairie fait mieux que la forêt à budget égal, parce qu'elle coûte trois fois moins cher. C'est un effet des réglages, pas une règle générale.
 - **La pollution** est un indice sans unité réelle : les « mg/L » et les tonnes sont des valeurs de jeu. Les nitrates qui descendent vers la nappe ne sont pas simulés.
@@ -184,7 +188,7 @@ Ce que le jeu ne montre pas du tout : l'eau potable et les rejets de la ville, l
 
 - Faire jouer de vrais joueurs et ajuster la difficulté et les consignes.
 - Rééquilibrer le coût de la forêt et de la prairie.
-- Donner aux barrages une vanne et un débit réservé.
+- Donner aux barrages une vanne qu'on peut ouvrir ou fermer pendant la simulation.
 - Ajouter la ville comme usager : eau potable, rejets, station d'épuration.
 - Ajouter une mission sur plusieurs années avec un climat qui change.
 
@@ -198,5 +202,6 @@ Ce que le jeu ne montre pas du tout : l'eau potable et les rejets de la ville, l
 | `sources/template.html` | Interface : mise en page, carte 2D et 3D, légende, panneaux, outils |
 | `sources/build.py` | Assemble `sim.js` et `template.html` en un seul fichier |
 | `sources/test.js` | Banc de test hors écran : référence et stratégies par mission |
+| `sources/soltest.js` | Vérifie que la solution de chaque mission réussit dans le budget |
 
 Pour modifier le jeu : éditer `sim.js` (modèle, missions, seuils) ou `template.html` (interface), lancer `node test.js` pour vérifier que les missions restent gagnables (`node test.js m1` pour une seule), puis `python3 build.py` pour régénérer le fichier du jeu. Il faut Node.js et Python 3 ; aucune autre dépendance.

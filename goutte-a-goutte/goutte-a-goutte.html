@@ -93,6 +93,8 @@ nav button[aria-pressed="true"] .done{color:inherit}
 .toolinfo p{margin:0 0 6px;max-width:68ch}
 .props{display:flex;flex-wrap:wrap;gap:4px 18px;font:400 12px var(--mono);color:var(--muted)}
 .props b{color:var(--ink);font-weight:500}
+.props{align-items:center}
+.props button{padding:3px 8px;font-size:12px}
 section{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:12px 14px}
 h2{font:700 15px var(--display);margin:0 0 8px}
 #mcard{display:flex;flex-direction:column;gap:10px;padding:14px 16px}
@@ -108,6 +110,9 @@ h2{font:700 15px var(--display);margin:0 0 8px}
 .budget .meter{flex:1;max-width:260px;margin:0}
 .budget.flash{color:var(--alert)}
 details summary{cursor:pointer;color:var(--muted);font-size:13px}
+#msolbox summary{display:inline-block;color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:4px 10px;font-weight:500}
+#msolbox[open] summary{margin-bottom:6px}
+#msolbox button{margin-top:8px}
 details p{margin-top:6px !important;color:var(--muted)}
 #mverdict{border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:6px}
 #mverdict h3{font:700 17px var(--display);margin:0}
@@ -144,6 +149,7 @@ input[type=range]{width:110px;accent-color:var(--bistre)}
     <ul id="mobj"></ul>
     <div class="budget" id="mbudget"><span id="mbudtxt"></span><div class="meter"><i id="mbudbar"></i></div></div>
     <details id="mhintbox"><summary>Un indice</summary><p id="mhint"></p></details>
+    <details id="msolbox"><summary>Solution</summary><p id="msol"></p><button type="button" id="msolapply">Appliquer cette solution sur la carte</button></details>
     <div id="mverdict" hidden><h3 id="mvtitle"></h3><p id="mvtext"></p><p class="legend" id="mvextra"></p></div>
     <div class="bar" id="mact"></div>
   </section>
@@ -277,7 +283,8 @@ function nOf(i){const riv=dist[i]===0,b=riv?NRIV:C[cov[i]].n;return fr[i]===1?(r
 const h=new Float32Array(N), W=new Float32Array(N), S=new Float32Array(N), G=new Float32Array(N),
       dW=new Float32Array(N), dG=new Float32Array(N), cropFl=new Float32Array(N), cropDry=new Float32Array(N), L=new Float32Array(N), dL=new Float32Array(N), V=new Float32Array(N),
       cov=new Uint8Array(N), sea=new Uint8Array(N), pump=new Uint8Array(N), fr=new Uint8Array(N), rough=new Float32Array(N), dist=new Float32Array(N), side=new Int8Array(N);
-let pumps=[];
+let pumps=[], oris=[];
+const QORI=30*600/(DX*DX/1000);   // pertuis d'un barrage écrêteur : 30 m³/s quand la retenue est pleine
 const st={t:0,rain:{left:0,int:0},etpDay:3,meteo:"temp",script:null,nLand:1,axis:[],noise:null,
   A:20,loop:false,cumSea:0,cap:0,cumP:0,cumE:0,cumQ:0,qAcc:0,qNow:0,lastPeak:0,prevPeak:0,hist:[],m:null};
 function resetMetrics(){st.m={infl:0,polOut:0,cMax:0,cHours:0,cNow:0,rains:0,rain:0,peakT:0,peak:0,minQ:1e9,floodMax:0,floodH:0,stress:0,evapOpen:0,pumpG:0,pumpW:0,floodNow:0,dryNow:0}}
@@ -296,7 +303,7 @@ function generate(seed,setup){
   st.nLand=0; st.cap=(GH-13)*GW+st.axis[GH-13];
   for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const i=y*GW+x; pump[i]=0; fr[i]=0;
     if(y>=GH-2){sea[i]=1;h[i]=-1;cov[i]=0;continue}
-    sea[i]=0;st.nLand++;
+    sea[i]=0;st.nLand++;oris=[];
     // lit de la rivière : un chemin continu de case en case, au creux d'un fond de vallée en V très ouvert
     const a0=st.axis[y],a1=st.axis[Math.min(y+1,GH-3)],lo=Math.min(a0,a1),hi=Math.max(a0,a1);
     const d=x<lo?lo-x:x>hi?x-hi:0; dist[i]=d; side[i]=x<lo?-1:x>hi?1:0;
@@ -401,6 +408,10 @@ function step(){
     if(d3>0){mv=Math.min(out*d3/sum,d3*200);dW[i]-=mv;dL[i]-=mv*lr;if(sea[i+GW]){qs+=mv;po+=mv*lr}else{dW[i+GW]+=mv;dL[i+GW]+=mv*lr}}
   }
   for(let i=0;i<N;i++)if(!sea[i]){const w=W[i]+dW[i];W[i]=w<0?0:w;const l=L[i]+dL[i];L[i]=l<0?0:l} }
+  // pertuis : l'eau passe sous le barrage écrêteur, d'autant plus vite que la retenue est haute
+  for(const o of oris){const u=o.u,d=o.d,w=W[u];if(w<=0)continue;const head=h[u]+w/1000-o.bed;if(head<=0)continue;
+    const q=Math.min(w*0.8,QORI*Math.sqrt(Math.min(1,head/o.H))),lr=L[u]/w;W[u]-=q;L[u]-=q*lr;
+    if(sea[d]){qs+=q;po+=q*lr}else{W[d]+=q;L[d]+=q*lr}}
   m.polOut+=po;
   let fl=0,dr=0; const dryT=C[2].cap*0.25;
   for(let i=0;i<N;i++)if(!sea[i]){
@@ -438,8 +449,13 @@ function damPlan(i,H){ if(i<0||sea[i]||cov[i]===4)return null; const x=i%GW,y=i/
     for(const [da,db] of [[1,0],[-1,0],[0,1],[0,-1]]){const aa=a+da,bb=b+db;if(aa<0||bb<0||aa>=GH-2||bb>=GW)continue;const n=aa*GW+bb;if(!seen[n]&&!sea[n]&&h[n]<crest){seen[n]=1;q.push(n)}}}
   const ok=ends===2&&up.length<700; if(!ok&&!why)why="bord";
   return{line,crest,up,along,ok,why,dn:[-ux,-uy]}}
+function orificeFor(p,i){return{u:i-p.dn[0]-p.dn[1]*GW,d:i+p.dn[0]+p.dn[1]*GW,bed:h[i],H:p.crest-h[i]}}
+function setOrifices(l){oris=l}
+// construit un barrage sur le seul moteur (banc de test, solutions) ; l'interface a sa propre version qui garde la trace des barrages
+function buildDam(i,H,ecr){const p=damPlan(i,H);if(!p||!p.ok)return null;const o=ecr?orificeFor(p,i):null;
+  for(const j of p.line)h[j]=Math.max(h[j],p.crest);if(o)oris.push(o);return p}
 function runAll(){while(st.t<st.script.days*144)step();st.m.t50=half();st.m.harvest=harvest()}
-const api={damPlan,hedgeNb,harvest,cropFl,cropDry,L,SRC,TRAP,SEUIL,ATH,SEAK,REC,half,fr,nOf,COST_SLOW,COST_UNFAST,NRIV,dist,side,GW,GH,N,DT,GMAX,DAQ,DX,FLOOD,C,COST_UP,COST_DOWN,COST_PUMP,h,W,S,G,V,cov,sea,pump,st,each,inTown,generate,resetRun,startRain,setPump,snapshot,restore,step,runAll};
+const api={QORI,orificeFor,setOrifices,buildDam,damPlan,hedgeNb,harvest,cropFl,cropDry,L,SRC,TRAP,SEUIL,ATH,SEAK,REC,half,fr,nOf,COST_SLOW,COST_UNFAST,NRIV,dist,side,GW,GH,N,DT,GMAX,DAQ,DX,FLOOD,C,COST_UP,COST_DOWN,COST_PUMP,h,W,S,G,V,cov,sea,pump,st,each,inTown,generate,resetRun,startRain,setPump,snapshot,restore,step,runAll};
 return api;
 })();
 
@@ -464,6 +480,13 @@ const oNoPump=()=>({txt:"Ne pas irriguer : aucune pompe",live:true,ok:(m,b,x)=>x
 const oCrops=(k)=>({txt:"Garder au moins "+pct(k)+" % des surfaces cultivées",live:true,ok:(m,b,x)=>x.crops>=x.crops0*k,cur:(m,b,x)=>x.crops+" cases sur "+x.crops0});
 const oTown=(n)=>({txt:"Construire "+n+" nouvelles cases de ville",live:true,ok:(m,b,x)=>x.newTown>=n,cur:(m,b,x)=>x.newTown+" / "+n});
 
+// opérations utilisées par les solutions ; dam est fourni par l'appelant (l'interface garde la trace des barrages)
+function solOps(dam){const S=Sim;return{
+  cover:(n,f,c,srt)=>{const o=[];S.each((i,x,y,d)=>{if(S.cov[i]!==4&&f(i,x,y,d))o.push(i)});if(srt)o.sort(srt);o.slice(0,n).forEach(i=>S.cov[i]=c)},
+  slow:f=>S.each((i,x,y,d)=>{if(S.cov[i]!==4&&f(i,x,y,d))S.fr[i]=1}),
+  pumps:(ys,ds)=>{for(const y of ys)for(const dd of ds){const x=S.st.axis[y]+dd;if(x>=0&&x<S.GW)S.setPump(y*S.GW+x,1)}},
+  dam:(y,H,ecr)=>dam(y*S.GW+S.st.axis[y],H,ecr),
+  low:(a,b)=>S.h[a]-S.h[b]}}
 const MISSIONS=[
 { id:"m1", name:"Premier orage", theme:"Ruissellement et infiltration",
   brief:"Les versants ont été mis à nu. À chaque orage, l'eau dévale les pentes sans s'infiltrer et gonfle la rivière en quelques heures. Replantez pour que la pluie entre dans le sol au lieu de ruisseler.",
@@ -471,65 +494,74 @@ const MISSIONS=[
   learn:"Une même pluie ne fait pas la même crue. Ce qui décide, c'est le partage au sol entre infiltration et ruissellement : un sol couvert absorbe et freine, un sol nu ou tassé évacue tout, tout de suite.",
   tools:["c0","c1"], budget:700, speed:1, meteo:"3 jours · un orage de 80 mm en 2 heures",
   setup:s=>s.each((i,x,y,d)=>{if(s.h[i]>13&&s.cov[i]!==4)s.cov[i]=3}),
-  script:{days:3,rain:[[6,40,2]],etp:[[0,3]],lowFrom:0}, obj:[oPeak(0.30),oInf(0.4)] },
+  script:{days:3,rain:[[6,40,2]],etp:[[0,3]],lowFrom:0}, sol:{txt:"Plantez de la forêt sur les versants nus les plus bas, juste au-dessus de la plaine : 230 cases, 690 crédits. C'est de là que l'eau rejoint le plus vite la rivière, en même temps que le pic. La forêt y absorbe jusqu'à 40 mm/h et freine le reste : le pic tombe d'environ 126 à 50 m³/s et l'infiltration augmente de plus de 70 %. La même forêt en haut des versants fait beaucoup moins, car l'eau du haut arrive de toute façon après le pic.",apply:o=>o.cover(230,(i)=>Sim.cov[i]===3,0,o.low)},
+  obj:[oPeak(0.30),oInf(0.4)] },
 { id:"mv", name:"La course de l'eau", theme:"Vitesse d'écoulement",
   brief:"Pour assécher les champs et évacuer l'eau au plus vite, on a creusé des fossés dans toute la plaine et rectifié la rivière. L'eau ne s'attarde plus nulle part : tout arrive en bas en même temps. Ralentissez-la pour étaler la crue, sans trop entamer la récolte : une haie prend un peu de place dans le champ mais abrite ses voisins, et une eau freinée peut noyer des cultures.",
   hint:"Passez en vue « Vitesse » et lancez une première fois pour voir où l'eau court. Les dernières centaines de mètres avant la rivière comptent beaucoup. Et une rivière ralentie monte plus haut : devant la ville, c'est un risque.",
   learn:"Une crue, c'est un volume d'eau qui arrive dans un temps donné. À volume égal, plus l'eau va vite, plus elle arrive groupée et plus le pic est haut. La freiner l'étale dans le temps et lui laisse le loisir de s'infiltrer. Mais une eau plus lente est aussi une eau plus haute : on ralentit là où elle peut s'étaler sans dégât, pas devant les maisons. Pour l'agriculture, le bilan dépend du dosage : quelques haies bien réparties abritent les champs et augmentent la récolte, une plaine couverte de haies la réduit, et remplacer les champs par de la forêt la fait chuter.",
   tools:["slow"], budget:300, speed:1, meteo:"3 jours · un orage de 100 mm en 2 heures",
   setup:s=>s.each((i,x,y,d)=>{if(d===0||s.cov[i]===2||s.cov[i]===3)s.fr[i]=2}),
-  script:{days:3,rain:[[6,50,2]],etp:[[0,3]],lowFrom:0}, obj:[oPeak(0.2),oLag(1),oFlood(),oHarvest(0.95)] },
+  script:{days:3,rain:[[6,50,2]],etp:[[0,3]],lowFrom:0}, sol:{txt:"Posez des haies sur les deux cases qui bordent la rivière de chaque côté, sur toute sa longueur : environ 100 cases, 200 crédits. Toute l'eau des versants doit traverser cette bande avant d'entrer dans la rivière ; freinée au dernier moment, elle arrive étalée. Le pic passe d'environ 121 à 71 m³/s et la moitié de la crue passe plus de deux heures plus tard. Les haies mangent un peu de surface mais abritent les champs voisins : la récolte reste autour de 98 %. Évitez de ralentir le lit de la rivière devant la ville, l'eau y monterait.",apply:o=>o.slow((i,x,y,d)=>d>=1&&d<=2)},
+  obj:[oPeak(0.2),oLag(1),oFlood(),oHarvest(0.95)] },
 { id:"m2", name:"La ville s'étend", theme:"Imperméabilisation des sols",
   brief:"La commune doit accueillir de nouveaux quartiers. Chaque case bâtie renvoie presque toute sa pluie vers la rivière. Trouvez où construire, et comment compenser, pour que la crue ne grossisse pas et que personne n'ait les pieds dans l'eau.",
   hint:"Le fond de vallée est la place de la rivière en crue. Un bassin creusé en contrebas d'un quartier, ou des versants reboisés ailleurs, compensent ce que la ville n'absorbe plus.",
   learn:"Artificialiser un sol, c'est déplacer l'eau vers l'aval, plus vite. On peut compenser par des sols plus absorbants ailleurs ou par du stockage, mais l'emplacement compte autant que la surface : bâtir dans le lit de la rivière en crue reste une exposition au risque.",
   tools:["c4","c0","c1","c5","down"], budget:260, speed:1, meteo:"3 jours · un orage de 100 mm en 2 heures",
   setup:null,
-  script:{days:3,rain:[[6,50,2]],etp:[[0,3]],lowFrom:0}, obj:[oTown(60),oFlood(),oPeakMax(0.05)] },
+  script:{days:3,rain:[[6,50,2]],etp:[[0,3]],lowFrom:0}, sol:{txt:"Construisez les 60 cases de ville sur les versants, loin du fond de vallée (entre 7 et 11 cases de la rivière), puis transformez 260 cases de cultures et de sol nu en prairie. Hors du lit de la rivière en crue, les nouveaux quartiers ne sont pas inondés. La prairie absorbe deux fois plus vite que les cultures et compense largement l'eau que la ville renvoie : le pic baisse même d'environ 84 à 64 m³/s. Coût : 260 crédits.",apply:o=>{o.cover(60,(i,x,y,d)=>d>=7&&d<=11&&y>6,4);o.cover(260,(i)=>Sim.cov[i]===2||Sim.cov[i]===3,1)}},
+  obj:[oTown(60),oFlood(),oPeakMax(0.05)] },
 { id:"m3", name:"Quand le sol est plein", theme:"Crue sur sol saturé",
   brief:"Il pleut depuis un jour entier, puis l'orage arrive. Les sols sont gorgés d'eau : même la forêt ne peut plus rien absorber. Il faut cette fois retenir l'eau en surface, le temps que la crue passe.",
   hint:"Un barrage ne retient que l'eau venue de l'amont : placée trop haut, elle laisse passer tout ce qui tombe plus bas. Il doit aussi être assez haut pour ne pas déborder, et il noie les terres derrière lui.",
   learn:"L'infiltration a une limite : la place disponible dans le sol. Après de longues pluies, presque tout ruisselle, quelle que soit la végétation. Il faut alors du volume libre pour retenir la crue, au bon endroit, et accepter que des terres soient noyées à la place de la ville. Une digue le long de la ville, elle, renvoie le problème en aval.",
   tools:["c0","c1","c5","up","down"], budget:320, speed:1, meteo:"4 jours · 150 mm de pluie continue, puis un orage de 110 mm en 2 heures",
   setup:null,
-  script:{days:4,rain:[[2,5,30],[36,55,2]],etp:[[0,2]],lowFrom:0}, obj:[oFlood(),oPeak(0.15)] },
+  script:{days:4,rain:[[2,5,30],[36,55,2]],etp:[[0,2]],lowFrom:0}, sol:{txt:"Posez un barrage plein de 4 m sur la rivière, deux cases au-dessus des premières maisons : 65 crédits. Les sols étant saturés, aucune végétation ne peut plus absorber l'orage ; il faut du volume vide. La retenue stocke la crue venue de l'amont pendant qu'elle passe : le pic tombe d'environ 136 à 104 m³/s et la ville reste au sec. Plus haut dans la vallée, le barrage laisserait passer toute la pluie tombée en dessous. Un barrage écrêteur marche aussi, mais il lui faut 6 m, car son pertuis laisse filer 30 m³/s.",apply:o=>o.dam(15,4,false)},
+  obj:[oFlood(),oPeak(0.15)] },
 { id:"mq", name:"L'eau qui emporte", theme:"Qualité de l'eau",
   brief:"La plaine est cultivée jusqu'au bord de la rivière. À chaque pluie, l'eau qui ruisselle sur les champs emporte de la terre, des engrais et des pesticides. La ville, elle, puise son eau potable dans la rivière : le captage est marqué d'un losange. Gardez les cultures, mais arrêtez la pollution avant qu'elle n'atteigne l'eau.",
   hint:"Passez en vue « Qualité » pendant une pluie pour voir d'où part la pollution et par où elle rejoint la rivière. Une bande de végétation n'agit que sur l'eau qui la traverse : sa place compte plus que sa surface.",
   learn:"L'eau garde la trace de ce qu'elle a traversé. Celle qui ruisselle sur un sol nu ou cultivé se charge ; celle qui s'infiltre ou traverse lentement une végétation dense se décharge. Une bande enherbée, une haie ou une zone humide placée entre le champ et la rivière protège l'eau pour une petite surface. Le jeu ne montre pas tout : les nitrates descendent aussi vers la nappe avec l'eau qui s'infiltre.",
   tools:["c1","c5","c0","slow"], budget:260, speed:2, quality:true, meteo:"5 jours · une averse, un orage de 60 mm, puis une pluie de 30 mm",
   setup:s=>s.each((i,x,y,d)=>{if(s.h[i]<19&&d>=1&&s.cov[i]!==4)s.cov[i]=2}),
-  script:{days:5,rain:[[4,8,4],[30,30,2],[70,10,3]],etp:[[0,3]],lowFrom:0}, obj:[oLoad(0.5),oCap(0.45),oCrops(0.85)] },
+  script:{days:5,rain:[[4,8,4],[30,30,2],[70,10,3]],etp:[[0,3]],lowFrom:0}, sol:{txt:"Transformez en zone humide la case qui borde la rivière de chaque côté, sur toute sa longueur : environ 50 cases, 150 crédits. Toute l'eau qui ruisselle des champs doit la traverser avant d'atteindre la rivière ; la végétation dense la ralentit et retient la pollution. La pollution partie en mer tombe d'environ 99 à 35 tonnes et la pointe au captage de 54 à 20 mg/L, en gardant plus de 90 % des champs. La même surface de prairie au milieu de la plaine ne change presque rien : ce qui compte, c'est d'être sur le chemin de l'eau.",apply:o=>o.cover(999,(i,x,y,d)=>d===1&&Sim.cov[i]===2,5)},
+  obj:[oLoad(0.5),oCap(0.45),oCrops(0.85)] },
 { id:"m4", name:"La rivière en été", theme:"Nappe et débit d'étiage",
   brief:"Huit jours de pluies d'hiver, puis vingt-six jours sans une goutte. En été, la rivière ne coule que grâce à la nappe qui se vide lentement. Faites en sorte que l'eau de l'hiver entre dans le sous-sol pour ressortir quand il n'y a plus de pluie.",
   hint:"Ce qui ruisselle en hiver est perdu pour l'été. Comparez ce que coûte une case de forêt et une case de prairie, et ce que chacune consomme en été. Une retenue, elle, garde l'eau pour elle et en évapore une partie.",
   learn:"La rivière d'été est faite de la pluie d'hiver. L'eau infiltrée met des semaines à rejoindre le cours d'eau, alors que l'eau ruisselée est en mer en quelques heures. Protéger la recharge des nappes, c'est protéger le débit d'étiage.",
   tools:["c0","c1","c5","up","down"], budget:450, speed:8, sqrt:true, meteo:"34 jours · 8 jours de pluies d'hiver (236 mm), puis 26 jours secs et chauds",
   setup:s=>s.each((i,x,y,d)=>{if(s.h[i]>12&&s.cov[i]!==4&&s.st.noise(x,y)<0.72)s.cov[i]=3}),
-  script:SEASON, obj:[oLow(1.15)] },
+  script:SEASON, sol:{txt:"Semez de la prairie sur 450 cases de sol nu, en commençant par les plus basses : 450 crédits. En hiver, le sol nu laisse ruisseler la pluie, qui file en mer en quelques heures ; la prairie la fait entrer dans le sol, d'où elle descend lentement vers la nappe. En été, cette nappe mieux remplie alimente la rivière : son débit le plus bas remonte d'environ 0,83 à 1,05 m³/s. La forêt recharge aussi, mais elle coûte trois fois plus cher et boit davantage en été. Les retenues, elles, gardent l'eau pour elles et l'évaporent.",apply:o=>o.cover(450,(i)=>Sim.cov[i]===3,1,o.low)},
+  obj:[oLow(1.15)] },
 { id:"m5", name:"Partager l'eau", theme:"Irrigation et débit réservé",
   brief:"L'été, les cultures de la plaine manquent d'eau. Des pompes peuvent les irriguer, en puisant dans la rivière ou dans la nappe. Mais cette eau manque ensuite au cours d'eau, qui doit garder un débit minimal pour rester vivant.",
   hint:"Une pompe irrigue les cultures à 3 cases autour d'elle. Posée sur la rivière, elle prend l'eau qui passe ; ailleurs, elle puise dans la nappe et creuse un cône visible en vue « Nappe ». Une retenue remplie en hiver peut aussi servir de réserve.",
   learn:"Rivière et nappe sont le même réservoir vu à deux endroits : pomper dans l'une fait baisser l'autre. Pomper loin du cours d'eau retarde l'effet sans le supprimer, et trop de pompes finissent toujours par se voir dans la rivière. Stocker l'eau d'hiver déplace le prélèvement dans le temps, mais une partie s'évapore.",
   tools:["pump","c5","up","down"], budget:220, speed:8, sqrt:true, meteo:"34 jours · 8 jours de pluies d'hiver (236 mm), puis 26 jours secs et chauds",
   setup:s=>s.each((i,x,y,d)=>{if(s.h[i]<19&&d>=1&&s.cov[i]!==4)s.cov[i]=2}),
-  script:SEASON, obj:[oStress(0.45),oLow(0.6),oCrops(0.9)] },
+  script:SEASON, sol:{txt:"Installez 8 pompes dans la plaine, à 8 cases de la rivière de chaque côté, sur les rangées 6, 12, 18 et 24 : 80 crédits. Elles puisent dans la nappe loin du cours d'eau ; l'effet sur la rivière arrive donc lentement et reste limité pendant la saison. Le manque d'eau des cultures baisse d'environ moitié et la rivière garde près des deux tiers de son débit d'été. Des pompes dans la rivière, ou trop près d'elle, la vident presque ; trop de pompes, même loin, finissent par se voir aussi.",apply:o=>o.pumps([6,12,18,24],[-8,8])},
+  obj:[oStress(0.45),oLow(0.6),oCrops(0.9)] },
 { id:"mc", name:"D'où vient la pluie", theme:"La boucle complète",
   brief:"Jusqu'ici la pluie tombait toute seule. Ici, plus de météo imposée : l'atmosphère se charge de l'eau évaporée par la mer et par les terres, et il ne pleut que lorsqu'elle est pleine. Sur ce territoire aux versants dénudés, presque rien ne remonte vers le ciel et les pluies sont rares. Faites tourner l'eau plus souvent pour que les cultures tiennent, sans irrigation.",
   hint:"Suivez la jauge « Atmosphère » du schéma : elle se remplit par la mer et par l'évapotranspiration des terres. Un sol nu ou sec n'évapore presque rien. La moitié de ce que les terres évaporent retombe sur place, le reste part avec le vent. Pour cette mission, la carte représente une grande région.",
   learn:"L'eau ne se perd pas, elle tourne. La mer fournit l'apport net, et c'est lui qui finit dans les rivières. Mais une région couverte de végétation renvoie vers le ciel une partie de sa pluie, qui retombe plus loin : la même eau sert plusieurs fois. Ce recyclage pèse à l'échelle d'une grande région ou d'un continent ; sur un petit bassin versant, l'essentiel de la pluie vient d'ailleurs.",
   tools:["c0","c1","c5"], budget:500, speed:8, sqrt:true, meteo:"45 jours chauds · il pleut dès que l'atmosphère contient 30 mm d'eau",
   setup:s=>s.each((i,x,y,d)=>{if(s.cov[i]===4)return;if(s.h[i]<19&&d>=1)s.cov[i]=2;else if(s.h[i]>=19&&s.st.noise(x,y)<0.75)s.cov[i]=3}),
-  script:{days:45,loop:true,rain:[],etp:[[0,5]],lowFrom:0}, obj:[oEt(0.12),oStress(0.4),oCrops(0.9),oNoPump()] },
+  script:{days:45,loop:true,rain:[],etp:[[0,5]],lowFrom:0}, sol:{txt:"Semez de la prairie sur 450 cases de sol nu : 450 crédits, sans toucher aux cultures ni installer de pompe. Un sol nu sec n'évapore presque rien ; couvert de végétation, il renvoie de l'eau vers le ciel tant qu'il en a. L'atmosphère se remplit plus vite, les pluies reviennent plus tôt et les cultures souffrent beaucoup moins. Le nombre de pluies change peu : c'est leur rythme qui compte.",apply:o=>o.cover(450,(i)=>Sim.cov[i]===3,1)},
+  obj:[oEt(0.12),oStress(0.4),oCrops(0.9),oNoPump()] },
 { id:"m6", name:"Un territoire, quatre saisons", theme:"Tout concilier",
   brief:"Une année entière en accéléré : pluies d'hiver avec un gros orage sur sol saturé, puis un été sec. Protégez la ville, gardez les cultures en vie et la rivière en eau, avec un budget qui ne permet pas tout.",
   hint:"Chaque aménagement a deux faces : la forêt absorbe la crue mais boit en été, la retenue protège et irrigue mais s'évapore, la pompe sauve la récolte mais prend à la rivière.",
   learn:"Il n'y a pas d'aménagement miracle. Gérer l'eau d'un bassin versant, c'est arbitrer entre des usages et des risques qui dépendent tous du même stock, d'une saison à l'autre et de l'amont à l'aval.",
   tools:["c0","c1","c5","slow","up","down","pump"], budget:500, speed:8, sqrt:true, meteo:"34 jours · pluies d'hiver, un orage de 80 mm au 8e jour, puis 26 jours secs et chauds",
   setup:s=>s.each((i,x,y,d)=>{if(s.cov[i]===4)return;if(s.h[i]<19&&d>=1)s.cov[i]=2;else if(s.h[i]>19&&s.st.noise(x,y)<0.45)s.cov[i]=3}),
-  script:{days:34,rain:WET.concat([[176,40,2]]),etp:[[0,1],[8,3.5],[11,6]],lowFrom:24}, obj:[oFlood(),oPeak(0.15),oStress(0.4),oLow(0.5),oCrops(0.8)] }
+  script:{days:34,rain:WET.concat([[176,40,2]]),etp:[[0,1],[8,3.5],[11,6]],lowFrom:24}, sol:{txt:"Combinez trois aménagements, pour 395 crédits environ. Un barrage écrêteur de 4 m juste au-dessus de la ville retient l'orage, puis se vide par son pertuis : il ne coupe pas la rivière et s'évapore peu en été. 200 cases de sol nu passent en prairie, pour infiltrer l'hiver et soutenir la nappe. 12 pompes, à 8 cases de la rivière, irriguent la plaine sans assécher le cours d'eau. Avec un barrage plein à la place de l'écrêteur, la retenue évapore une quinzaine de fois plus d'eau et le débit d'été baisse nettement.",apply:o=>{o.dam(15,4,true);o.cover(200,(i)=>Sim.cov[i]===3,1);o.pumps([4,8,12,16,20,24],[-8,8])}},
+  obj:[oFlood(),oPeak(0.15),oStress(0.4),oLow(0.5),oCrops(0.8)] }
 ];
-if(typeof module!=="undefined")module.exports={Sim,MISSIONS};
+if(typeof module!=="undefined")module.exports={Sim,MISSIONS,solOps};
 
 </script>
 <script>
@@ -541,14 +573,15 @@ const $=id=>document.getElementById(id), fx=v=>v.toFixed(v<10?1:0).replace(".","
 const kM3=v=>{const k=v*M3/1000;return k<1?"0":k<1000?Math.round(k)+" milliers de m³":fx(k/1000)+" millions de m³"};
 const TOOLS=[{id:"inspect",name:"Sonder",txt:"Survolez la carte pour lire l'état de chaque case : lame d'eau, vitesse, humidité du sol, profondeur de la nappe."}]
  .concat(C.map((c,i)=>({id:"c"+i,cov:i,name:c.name,txt:c.txt,cost:c.cost})))
- .concat([{id:"dam",name:"Barrage",cost:s.COST_UP,txt:"Cliquez dans le creux d'une vallée : le barrage se construit tout seul en travers de l'écoulement, d'un versant à l'autre, avec une crête de niveau. L'aperçu montre son tracé (orange), le sens de l'eau (flèche) et la zone que la retenue noiera (bleu). Il arrête la crue venue de l'amont, recharge la nappe et s'évapore en été. Cliquez sur un barrage existant pour le retirer."},
+ .concat([{id:"dam",name:"Barrage",cost:s.COST_UP,txt:"Cliquez dans le creux d'une vallée : le barrage se construit tout seul en travers de l'écoulement, d'un versant à l'autre, avec une crête de niveau. L'aperçu montre son tracé (orange), le sens de l'eau (flèche) et la zone que la retenue noiera (bleu). Il arrête la crue venue de l'amont, recharge la nappe et s'évapore en été. Le barrage plein retient tout jusqu'à déborder ; le barrage écrêteur a un pertuis à sa base qui laisse passer le débit normal et ne stocke que la pointe de la crue. Cliquez sur un barrage existant pour le retirer."},
           {id:"up",name:"Remblai (+2 m)",cost:s.COST_UP,txt:"Rehausse de 2 m les cases peintes, une à une. Utile pour une levée de terre le long d'une rive ; pour barrer une vallée, préférez l'outil Barrage."},
           {id:"down",name:"Creuser (−2 m)",cost:s.COST_DOWN,txt:"Abaisse le terrain de 2 m. Un creux recueille le ruissellement qui passe, et s'il descend jusqu'à la nappe, il se remplit par le dessous."},
           {id:"slow",name:"Haies et méandres",cost:s.COST_SLOW,txt:"Freine l'eau sans changer le sol : haies et talus en travers de la pente, ou méandres et végétation dans le lit de la rivière. L'eau arrive plus tard, plus étalée, et a le temps de s'infiltrer. Dans un champ, la haie prend un dixième de la surface, mais elle abrite les champs voisins du vent : +5 % de récolte autour d'elle, +8 % entre deux haies. Dans la rivière, une eau plus lente est aussi plus haute. Repassez sur une case pour retirer l'aménagement."},
           {id:"fast",name:"Fossés et lit rectifié",cost:0,txt:"Accélère l'eau : fossés de drainage sur les versants, lit rectifié et curé dans la rivière. L'eau quitte vite la parcelle, et arrive tout aussi vite, et en même temps que les autres, à l'aval."},
           {id:"pump",name:"Pompe",cost:s.COST_PUMP,txt:"Irrigue les cultures à 3 cases à la ronde. Elle prend d'abord l'eau de surface de sa case (rivière, retenue), sinon elle puise dans la nappe. Cliquez de nouveau pour la retirer."}]);
 let mode="mission", mi=0, phase="prep", ctx=null, lastHist=null, tal=null, verdict=null;
-let dams=[], damMap=new Int16Array(N), damH=4, preview=null;
+const COST_ECR=10;
+let dams=[], damMap=new Int16Array(N), damH=4, damEcr=false, preview=null;
 let tool="inspect", brush=0, view="terrain", speed=1, playing=true, hover=-1, baseDirty=true, busy=false;
 let done={}; try{done=JSON.parse(localStorage.getItem("bv-missions")||"{}")||{}}catch(e){}
 const M=()=>MISSIONS[mi];
@@ -561,8 +594,9 @@ function tally(){let c=0,nt=0,cr=0,cr0=0;
     if(s.fr[i]!==ctx.fr0[i])c+=s.fr[i]===1?s.COST_SLOW:s.fr[i]===0?s.COST_UNFAST:0;
     if(cov[i]===2)cr++; if(ctx.cov0[i]===2)cr0++ }
   let np=0;for(let i=0;i<N;i++)np+=pump[i];
+  for(const d of dams)if(d.ori)c+=COST_ECR;
   return{cost:Math.round(c),newTown:nt,crops:cr,crops0:cr0,pumps:np}}
-function loadMission(i){ if(busy)return; busy=true; mode="mission"; mi=i; phase="load"; lastHist=null; verdict=null; renderNav(); renderCard();
+function loadMission(i){ if(busy)return; $("msolbox").open=false; $("mhintbox").open=false; busy=true; mode="mission"; mi=i; phase="load"; lastHist=null; verdict=null; renderNav(); renderCard();
   setTimeout(()=>{const m=M(); st.script=m.script; st.meteo="none"; s.generate(SEED,m.setup);
     clearDams(); ctx={snap:s.snapshot(),cov0:cov.slice(),h0:h.slice(),fr0:s.fr.slice()};
     s.runAll(); ctx.base=Object.assign({},st.m); ctx.baseHist=st.hist.slice();
@@ -575,6 +609,10 @@ function loadSandbox(){ if(busy)return; mode="sandbox"; phase="free"; ctx=null; 
 function launch(){ s.restore(ctx.snap); s.resetRun(); st.etpDay=M().script.etp[0][1]; phase="run"; playing=true; verdict=null; setTool("inspect"); renderCard(); }
 function backToPrep(){ if(st.hist.length>4)lastHist=st.hist.slice(); s.restore(ctx.snap); s.resetRun(); st.etpDay=M().script.etp[0][1]; phase="prep"; verdict=null; renderCard(); }
 function resetTerrain(){ clearDams(); s.fr.set(ctx.fr0); cov.set(ctx.cov0); h.set(ctx.h0); for(let i=0;i<N;i++)if(pump[i])s.setPump(i,0); s.restore(ctx.snap); tal=tally(); baseDirty=true; renderCard(); }
+function applySolution(){ if(mode!=="mission"||phase==="load")return; if(phase!=="prep")backToPrep(); resetTerrain();
+  M().sol.apply(solOps((i,H,e)=>placeDam(i,H,e,true))); tal=tally(); baseDirty=true; isoDirty=true; renderCard();
+  $("msolbox").open=true; $("tooltext").textContent="Solution appliquée : regardez la carte, puis lancez la simulation pour la vérifier."}
+$("msolapply").addEventListener("click",applySolution);
 function finish(){ phase="done"; st.m.t50=s.half(); st.m.harvest=s.harvest(); const m=M(), res=m.obj.map(o=>o.ok(st.m,ctx.base,tal)); verdict={res,win:res.every(Boolean)};
   if(verdict.win){done[m.id]=1;try{localStorage.setItem("bv-missions",JSON.stringify(done))}catch(e){}}
   renderNav(); renderCard(); }
@@ -589,12 +627,12 @@ function renderNav(){const nav=$("nav");nav.innerHTML="";
 function btn(label,fn,cls){const b=document.createElement("button");b.textContent=label;if(cls)b.className=cls;b.addEventListener("click",fn);return b}
 function renderCard(){
   const sand=mode==="sandbox", act=$("mact"); act.innerHTML="";
-  $("sandbar").hidden=!sand; $("mobj").hidden=$("mbudget").hidden=$("mhintbox").hidden=$("mmeteo").hidden=sand; $("mverdict").hidden=true;
+  $("sandbar").hidden=!sand; $("mobj").hidden=$("mbudget").hidden=$("mhintbox").hidden=$("msolbox").hidden=$("mmeteo").hidden=sand; $("mverdict").hidden=true;
   if(sand){ $("meyebrow").textContent="Mode libre"; $("mname").textContent="Bac à sable";
     $("mbrief").textContent="Tous les outils, pas de budget ni d'objectif. Déclenchez la pluie vous-même ou laissez faire la météo, et observez ce que chaque aménagement change sur l'hydrogramme.";
     const p=btn(playing?"Pause":"Reprendre",()=>{playing=!playing;renderCard()});act.appendChild(p); return }
   const m=M(); $("meyebrow").textContent="Mission "+(mi+1)+" sur "+MISSIONS.length+" · "+m.theme; $("mname").textContent=m.name;
-  $("mbrief").textContent=m.brief; $("mmeteo").textContent="Météo imposée : "+m.meteo+"."; $("mhint").textContent=m.hint;
+  $("mbrief").textContent=m.brief; $("mmeteo").textContent="Météo imposée : "+m.meteo+"."; $("mhint").textContent=m.hint; $("msol").textContent=m.sol.txt;
   if(phase==="load"){ $("mobj").innerHTML='<li><span class="st">…</span><span>Calcul de la situation de référence, sans aucun aménagement</span></li>'; $("mbudget").hidden=true; return }
   renderObjectives();
   if(phase==="prep"){ act.appendChild(btn("Lancer la simulation",launch,"go")); act.appendChild(btn("Revenir au terrain d'origine",resetTerrain));
@@ -674,7 +712,8 @@ function draw(){ if(baseDirty)drawBase(); const c=cx2;
     const n=Math.min(260,st.rain.int*6),Wp=ts*GW,Hp=ts*(GH-2);
     for(let k=0;k<n;k++){const x=Math.random()*Wp,y=Math.random()*Hp;c.moveTo(x,y);c.lineTo(x-3,y+8)}c.stroke()}
   for(let i=0;i<N;i++)if(damMap[i]){const px=(i%GW)*ts,py=(i/GW|0)*ts;c.fillStyle="rgb(170,168,160)";c.fillRect(px,py,ts+.5,ts+.5);c.fillStyle="#7d7b74";
-    if(dams[damMap[i]-1].along)c.fillRect(px,py+ts*.42,ts,ts*.16);else c.fillRect(px+ts*.42,py,ts*.16,ts)}
+    const dd=dams[damMap[i]-1];if(dd.along)c.fillRect(px,py+ts*.42,ts,ts*.16);else c.fillRect(px+ts*.42,py,ts*.16,ts);
+    if(dd.oriTile===i){c.fillStyle="rgb(40,112,190)";if(dd.along)c.fillRect(px+ts*.36,py+ts*.3,ts*.28,ts*.4);else c.fillRect(px+ts*.3,py+ts*.36,ts*.4,ts*.28)}}
   if(preview&&tool==="dam"&&!damMap[hover]){const p=preview;if(p.ok){c.fillStyle="rgba(30,110,230,.55)";for(const j of p.up)c.fillRect((j%GW)*ts,(j/GW|0)*ts,ts,ts)}
     c.strokeStyle=p.ok?"#f08c1a":"#e0301e";c.lineWidth=2.5;for(const j of p.line)c.strokeRect((j%GW)*ts+1.5,(j/GW|0)*ts+1.5,ts-3,ts-3);
     const cx0=(hover%GW+.5)*ts,cy0=((hover/GW|0)+.5)*ts;c.strokeStyle="#fff";c.lineWidth=3;c.beginPath();c.moveTo(cx0-p.dn[0]*ts,cy0-p.dn[1]*ts);c.lineTo(cx0+p.dn[0]*ts*1.6,cy0+p.dn[1]*ts*1.6);c.stroke()}
@@ -797,7 +836,10 @@ function render3d(){ if(litDirty)computeLit(); setCam(); sortOrder();
     const o=i*4; quad(QX[o],QY[o],QX[o+1],QY[o+1],QX[o+2],QY[o+2],QX[o+3],QY[o+3]);
     if(sea[i]){GX.fillStyle=(x+y)%2?"rgb(70,126,172)":"rgb(74,131,178)";GX.fill();continue}
     GX.fillStyle=damMap[i]&&terr?"rgb(176,174,166)":topColor(i);GX.fill();
-    if(damMap[i]){const d=dams[damMap[i]-1];if(d.along)box(x,y+0.3,x+1,y+0.7,z,z+0.16,[206,203,194],"#a8a59c");else box(x+0.3,y,x+0.7,y+1,z,z+0.16,[206,203,194],"#a8a59c")}
+    if(damMap[i]){const d=dams[damMap[i]-1],wc=[206,203,194],rc="#a8a59c";
+      if(d.oriTile===i){if(d.along){box(x,y+0.3,x+0.36,y+0.7,z,z+0.16,wc,rc);box(x+0.36,y+0.3,x+0.64,y+0.7,z+0.09,z+0.16,wc,rc);box(x+0.64,y+0.3,x+1,y+0.7,z,z+0.16,wc,rc)}
+        else{box(x+0.3,y,x+0.7,y+0.36,z,z+0.16,wc,rc);box(x+0.3,y+0.36,x+0.7,y+0.64,z+0.09,z+0.16,wc,rc);box(x+0.3,y+0.64,x+0.7,y+1,z,z+0.16,wc,rc)}}
+      else if(d.along)box(x,y+0.3,x+1,y+0.7,z,z+0.16,wc,rc);else box(x+0.3,y,x+0.7,y+1,z,z+0.16,wc,rc)}
     const w=W[i];
     if(terr){
       if(w>2){const a=Math.min(.92,0.3+Math.log10(w/2)/2.6);quad(QX[o],QY[o],QX[o+1],QY[o+1],QX[o+2],QY[o+2],QX[o+3],QY[o+3]);GX.fillStyle=w>600?"rgba(22,66,150,"+a+")":"rgba(28,104,214,"+a+")";GX.fill()}
@@ -878,19 +920,20 @@ function iconCanvas(draw,w,hgt){const c=document.createElement("canvas");c.class
     P(x,y,z);const ax=_x,ay=_y;P(x+1,y,z);const bx=_x,by=_y;P(x+1,y+1,z);const cx=_x,cy=_y;P(x,y+1,z);quad(ax,ay,bx,by,cx,cy,_x,_y);GX.fillStyle=col;GX.fill();return z};
   draw(block,x,y);
   GX=saved.GX;IW=saved.IW;IH=saved.IH;Object.assign(cam,{th:saved.th,ph:saved.ph,S:saved.S,px:saved.px,py:saved.py});setCam();return c}
-function buildLegend(){const box=$("lgcov");box.innerHTML="";
+function buildLegend(){const lgc=$("lgcov");lgc.innerHTML="";
   C.forEach((c,k)=>{const card=document.createElement("button");card.type="button";card.className="lg-card";card.dataset.tool="c"+k;
     card.appendChild(iconCanvas((block,x,y)=>{block(rgb(COVCOL[k],1));drawCover(k,k*37+5,x,y,0)}));
     const tx=document.createElement("div");tx.className="lg-tx";
     tx.innerHTML="<b>"+c.name+"</b><p>"+LGD[k]+"</p>";card.appendChild(tx);
-    const dl=document.createElement("dl");dl.innerHTML=bars(c,k).map(b=>"<dt>"+b[0]+"</dt><dd><span class=\"lg-bar\"><i style=\"width:"+Math.round(Math.max(0.04,Math.min(1,b[1]))*100)+"%\"></i></span><em>"+b[2]+"</em></dd>").join("");card.appendChild(dl);card.addEventListener("click",()=>{const ok=[...tb.querySelectorAll("button")].some(b=>b.dataset.tool===card.dataset.tool);if(ok)setTool(card.dataset.tool)});box.appendChild(card)});
+    const dl=document.createElement("dl");dl.innerHTML=bars(c,k).map(b=>"<dt>"+b[0]+"</dt><dd><span class=\"lg-bar\"><i style=\"width:"+Math.round(Math.max(0.04,Math.min(1,b[1]))*100)+"%\"></i></span><em>"+b[2]+"</em></dd>").join("");card.appendChild(dl);card.addEventListener("click",()=>{const ok=[...tb.querySelectorAll("button")].some(b=>b.dataset.tool===card.dataset.tool);if(ok)setTool(card.dataset.tool)});lgc.appendChild(card)});
   const ex=$("lgextra");ex.innerHTML="";
   const items=[
     ["Rivière","Son lit draine la nappe : c'est ce qui la fait couler sans pluie.",(b,x,y)=>{b(rgb(COVCOL[1],1));P(x+0.32,y,0);const a=[_x,_y];P(x+0.68,y,0);const c2=[_x,_y];P(x+0.68,y+1,0);const d=[_x,_y];P(x+0.32,y+1,0);quad(a[0],a[1],c2[0],c2[1],d[0],d[1],_x,_y);GX.fillStyle="rgb(40,112,190)";GX.fill()}],
     ["Mer","Toute l'eau qui ruisselle ou s'écoule finit ici.",(b)=>b("rgb(70,126,172)",0,[40,86,128])],
     ["Haies et méandres","Freinent l'eau et retiennent une partie de la pollution. Dans un champ, une haie prend un dixième de la surface, mais les champs voisins gagnent 5 à 8 % de récolte.",(b,x,y)=>{b(rgb(COVCOL[2],1));drawCover(2,3,x,y,0);drawFr(1,false,x,y,0)}],
     ["Fossés et lit rectifié","Accélèrent l'eau vers l'aval.",(b,x,y)=>{b(rgb(COVCOL[2],1));drawCover(2,3,x,y,0);drawFr(2,false,x,y,0)}],
-    ["Barrage","Posé d'un clic en travers de la vallée : retient l'eau venue de l'amont et noie les terres derrière lui.",(b,x,y)=>{b("rgb(176,174,166)",0.14,[150,150,146]);line(x,y+.5,x+1,y+.5,0.142,"#7d7b74",3)}],
+    ["Barrage plein","Posé d'un clic en travers de la vallée : retient toute l'eau venue de l'amont jusqu'à déborder, et noie les terres derrière lui.",(b,x,y)=>{b("rgb(176,174,166)",0.14,[150,150,146]);box(x,y+0.3,x+1,y+0.7,0.14,0.3,[206,203,194],"#a8a59c")}],
+    ["Barrage écrêteur","Un pertuis à sa base laisse passer le débit normal : la retenue ne se remplit qu'en crue, puis se vide.",(b,x,y)=>{b("rgb(176,174,166)",0.14,[150,150,146]);box(x,y+0.3,x+0.36,y+0.7,0.14,0.3,[206,203,194],"#a8a59c");box(x+0.36,y+0.3,x+0.64,y+0.7,0.23,0.3,[206,203,194],"#a8a59c");box(x+0.64,y+0.3,x+1,y+0.7,0.14,0.3,[206,203,194],"#a8a59c")}],
     ["Remblai","Terrain rehaussé de 2 m, case par case : pour une levée le long d'une rive.",(b)=>b(rgb(COVCOL[1],1),0.14,[150,118,84])],
     ["Creux","Terrain abaissé de 2 m : recueille l'eau qui passe.",(b,x,y)=>{b(rgb(COVCOL[3],1));P(x+.5,y+.5,0);GX.fillStyle="rgba(40,112,190,.75)";GX.beginPath();GX.ellipse(_x,_y,cam.S*0.3,cam.S*0.3*sph,0,0,7);GX.fill()}],
     ["Pompe","Irrigue les cultures à 3 cases à la ronde.",(b,x,y)=>{b(rgb(COVCOL[2],1));drawPump(x,y,0)}],
@@ -1071,7 +1114,8 @@ function buildTools(){tb.innerHTML="";const allow=TOOLS.map(t=>t.id);          /
 function setTool(id){tool=id;markLegend();isoDirty=true;preview=null;tb.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.tool===id));
   const tl=TOOLS.find(x=>x.id===id);$("tooltext").textContent=tl.txt;cv.style.touchAction=id==="inspect"?"pan-y":"none";
   const p=$("toolprops");
-  if(id==="dam"){p.innerHTML='<span>Hauteur du barrage</span>'+[2,4,6].map(v=>'<button type="button" data-damh="'+v+'" aria-pressed="'+(v===damH)+'">'+v+' m</button>').join(" ");
+  if(id==="dam"){p.innerHTML='<span>Type</span><button type="button" data-damt="0" aria-pressed="'+!damEcr+'">Plein</button> <button type="button" data-damt="1" aria-pressed="'+damEcr+'">Écrêteur (+'+COST_ECR+' cr.)</button><span style="margin-left:10px">Hauteur</span>'+[2,4,6].map(v=>'<button type="button" data-damh="'+v+'" aria-pressed="'+(v===damH)+'">'+v+' m</button>').join(" ");
+    p.querySelectorAll("[data-damt]").forEach(b=>b.addEventListener("click",()=>{damEcr=b.dataset.damt==="1";p.querySelectorAll("[data-damt]").forEach(o=>o.setAttribute("aria-pressed",o===b));updPreview();isoDirty=true}));
     p.querySelectorAll("[data-damh]").forEach(b=>b.addEventListener("click",()=>{damH=+b.dataset.damh;p.querySelectorAll("[data-damh]").forEach(o=>o.setAttribute("aria-pressed",o===b));updPreview();isoDirty=true}));return}
   if(tl.cov!==undefined){const c=C[tl.cov];p.innerHTML="<span>infiltration <b>"+c.inf+" mm/h</b></span><span>réserve du sol <b>"+c.cap+" mm</b></span><span>rugosité <b>n = "+String(c.n).replace(".",",")+"</b></span><span>transpiration <b>× "+String(c.kc).replace(".",",")+"</b></span>"}else p.innerHTML=""}
 tb.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
@@ -1090,23 +1134,26 @@ let painting=false,stroke=null;
 function tileAt(e){const r=cv.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)/r.width*GW),y=Math.floor((e.clientY-r.top)/r.height*GH);
   return x<0||y<0||x>=GW||y>=GH?-1:y*GW+x}
 function flashBudget(){const b=$("mbudget");b.classList.add("flash");$("mbudtxt").textContent="Budget épuisé : "+tal.cost+" / "+M().budget+" crédits";setTimeout(()=>b.classList.remove("flash"),900)}
-function clearDams(){dams=[];damMap.fill(0);preview=null}
+function clearDams(){dams=[];damMap.fill(0);preview=null;s.setOrifices([])}
+function syncOris(){s.setOrifices(dams.filter(d=>d.ori).map(d=>d.ori))}
 function updPreview(){preview=tool==="dam"&&hover>=0&&!sea[hover]?s.damPlan(hover,damH):null;
   if(tool!=="dam")return; const p=preview,el=$("tooltext");
   if(!p){el.textContent=TOOLS.find(x=>x.id==="dam").txt;return}
   if(damMap[hover]){el.textContent="Cliquez pour retirer ce barrage.";return}
   if(!p.ok){el.textContent=p.why==="ville"?"On ne barre pas une vallée à travers la ville : choisissez un endroit en amont ou en aval des maisons.":"Ici, le barrage ne s'appuierait pas sur deux versants plus hauts que sa crête : l'eau passerait à côté. Cliquez plus bas dans un creux de vallée, ou baissez sa hauteur.";return}
   let c=0;for(const j of p.line)c+=Math.max(0,p.crest-h[j])/2*s.COST_UP;
-  el.textContent="Barrage de "+p.line.length+" cases, crête "+damH+" m au-dessus du fond, retenue d'environ "+p.up.length+" cases ("+Math.round(p.up.length*0.0625*10)/10+" km²) : "+Math.round(c)+" crédits."}
-function placeDam(i){const mis=mode==="mission";
-  if(damMap[i]){const d=dams[damMap[i]-1];d.tiles.forEach((j,k)=>{h[j]=d.prev[k];damMap[j]=0});dams[dams.indexOf(d)]={tiles:[],prev:[]};
-    if(mis){tal=tally();renderObjectives()}baseDirty=true;updPreview();return}
-  const p=s.damPlan(i,damH); if(!p||!p.ok){updPreview();return}
-  const prev=p.line.map(j=>h[j]); p.line.forEach(j=>{h[j]=Math.max(h[j],p.crest)});
-  if(mis){const t2=tally();if(t2.cost>M().budget){p.line.forEach((j,k)=>h[j]=prev[k]);flashBudget();return}tal=t2;renderObjectives()}
-  dams.push({tiles:p.line,prev,along:p.along});p.line.forEach(j=>damMap[j]=dams.length);baseDirty=true;updPreview()}
+  if(damEcr)c+=COST_ECR;
+  el.textContent=(damEcr?"Barrage écrêteur":"Barrage plein")+" de "+p.line.length+" cases, crête "+damH+" m au-dessus du fond, retenue d'environ "+p.up.length+" cases ("+(Math.round(p.up.length*0.0625*10)/10+"").replace(".",",")+" km²) : "+Math.round(c)+" crédits."+(damEcr?" Son pertuis laisse passer jusqu'à 30 m³/s : la retenue ne se remplit qu'en crue et se vide ensuite.":" Il ne laisse rien passer tant que la retenue n'est pas pleine.")}
+function placeDam(i,H,ecr,quiet){const mis=mode==="mission";
+  if(!quiet&&damMap[i]){const d=dams[damMap[i]-1];d.tiles.forEach((j,k)=>{h[j]=d.prev[k];damMap[j]=0});dams[dams.indexOf(d)]={tiles:[],prev:[]};
+    syncOris();if(mis){tal=tally();renderObjectives()}baseDirty=true;updPreview();return false}
+  const p=s.damPlan(i,H); if(!p||!p.ok){if(!quiet)updPreview();return false}
+  const ori=ecr?s.orificeFor(p,i):null, prev=p.line.map(j=>h[j]); p.line.forEach(j=>{h[j]=Math.max(h[j],p.crest)});
+  dams.push({tiles:p.line,prev,along:p.along,ori,oriTile:ecr?i:-1});p.line.forEach(j=>damMap[j]=dams.length);
+  if(mis){const t2=tally();if(t2.cost>M().budget){const d=dams.pop();d.tiles.forEach((j,k)=>{h[j]=d.prev[k];damMap[j]=0});if(!quiet)flashBudget();return false}tal=t2;if(!quiet)renderObjectives()}
+  syncOris();baseDirty=true;if(!quiet)updPreview();return true}
 function apply(i){ if(i<0||tool==="inspect")return; const mis=mode==="mission"; if(mis&&phase!=="prep")return;
-  if(tool==="dam"){if(!stroke.dd){stroke.dd=1;placeDam(i)}return}
+  if(tool==="dam"){if(!stroke.dd){stroke.dd=1;placeDam(i,damH,damEcr)}return}
   const tl=TOOLS.find(x=>x.id===tool),r=(brush&&tool!=="pump")?1:0,x0=i%GW,y0=i/GW|0; let changed=false,refused=false;
   for(let y=y0-r;y<=y0+r;y++)for(let x=x0-r;x<=x0+r;x++){ if(x<0||y<0||x>=GW||y>=GH-2)continue; const j=y*GW+x;
     if(mis&&ctx.cov0[j]===4)continue;                       // la ville existante ne se déplace pas

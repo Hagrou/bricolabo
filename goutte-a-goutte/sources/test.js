@@ -5,7 +5,7 @@ function run(m,ctx){s.restore(ctx.snap);s.resetRun();s.runAll();return Object.as
 function cost(ctx){let c=0;for(let i=0;i<s.N;i++){if(s.sea[i])continue;if(s.cov[i]!==ctx.cov0[i])c+=s.C[s.cov[i]].cost;const d=(s.h[i]-ctx.h0[i])/2;c+=d>0?d*s.COST_UP:-d*s.COST_DOWN;if(s.pump[i])c+=s.COST_PUMP;if(s.fr[i]!==ctx.fr0[i])c+=s.fr[i]===1?s.COST_SLOW:s.fr[i]===0?s.COST_UNFAST:0}return c}
 function show(tag,m,b,M,ctx){const x={newTown:0,crops:0,crops0:0,pumps:s.pump.reduce((a,v)=>a+v,0)};for(let i=0;i<s.N;i++){if(s.sea[i])continue;if(s.cov[i]===4&&ctx.cov0[i]!==4)x.newTown++;if(s.cov[i]===2)x.crops++;if(ctx.cov0[i]===2)x.crops0++}
   console.log("  "+tag.padEnd(34),"coût",String(Math.round(cost(ctx))).padStart(4),"| infil",Math.round(m.infl/s.st.nLand),"récolte",(m.harvest/b.harvest*100).toFixed(1)+"%","pic",m.peak.toFixed(1),"@h"+(m.peakT/6).toFixed(1),"t50 h"+(m.t50/6).toFixed(1),"minQ",m.minQ.toFixed(3),"flood",m.floodMax,"stress",Math.round(m.stress),"pol",Math.round(m.polOut*62.5e-6),"cMax",Math.round(m.cMax),"cH",m.cHours,"pluie",Math.round(m.rain),m.rains,"ET",Math.round(m.et),"evapOpen",Math.round(m.evapOpen),"pump",Math.round(m.pumpW),Math.round(m.pumpG),"|",M.obj.map(o=>o.ok(m,b,x)?"OK":"--").join(" "))}
-function reset(ctx){s.fr.set(ctx.fr0);s.cov.set(ctx.cov0);s.h.set(ctx.h0);for(let i=0;i<s.N;i++)if(s.pump[i])s.setPump(i,0)}
+function reset(ctx){s.setOrifices([]);s.fr.set(ctx.fr0);s.cov.set(ctx.cov0);s.h.set(ctx.h0);for(let i=0;i<s.N;i++)if(s.pump[i])s.setPump(i,0)}
 const ax=y=>s.st.axis[y];
 const pick=(n,f,srt)=>{const o=[];s.each((i,x,y,d)=>{if(f(i,x,y,d))o.push(i)});if(srt)o.sort(srt);return o.slice(0,n)};
 const dam=(y,k,H,gap)=>{for(let x=0;x<GW;x++){const i=y*GW+x;if(s.dist[i]<=k&&!(gap&&s.dist[i]===0))s.h[i]+=H}};
@@ -61,7 +61,10 @@ const strategies={
       "versant + 85 forêt":()=>{pick(60,(i,x,y,d)=>d>=7&&d<=11&&y>6&&s.cov[i]!==4).forEach(i=>s.cov[i]=4);pick(85,i=>s.cov[i]===2||s.cov[i]===3).forEach(i=>s.cov[i]=0)},
       "versant + 260 prairie":()=>{pick(60,(i,x,y,d)=>d>=7&&d<=11&&y>6&&s.cov[i]!==4).forEach(i=>s.cov[i]=4);pick(260,i=>s.cov[i]===2||s.cov[i]===3).forEach(i=>s.cov[i]=1)},
       "versant + 60 bassins -2m":()=>{pick(60,(i,x,y,d)=>d>=7&&d<=11&&y>6&&s.cov[i]!==4).forEach(i=>s.cov[i]=4);pick(60,(i,x,y,d)=>d>=4&&d<=6&&y>6&&s.cov[i]!==4).forEach(i=>s.h[i]-=2)} },
- m3:{ 'BARRAGE clic y=15 4 m':()=>bdam(15,4),
+ m3:{ 'ECRETEUR clic y=15 4 m':()=>s.buildDam(15*GW+ax(15),4,true),
+      'ECRETEUR clic y=15 6 m':()=>s.buildDam(15*GW+ax(15),6,true),
+      'ECRETEUR y=12 6 m':()=>s.buildDam(12*GW+ax(12),6,true),
+      'BARRAGE clic y=15 4 m':()=>bdam(15,4),
       'BARRAGE clic y=15 6 m':()=>bdam(15,6),
       'BARRAGE clic y=12 6 m':()=>bdam(12,6),
       'BARRAGE clic y=8 4 m':()=>bdam(8,4),
@@ -73,7 +76,9 @@ const strategies={
       "digues y=8 et y=15 k=4 H=4":()=>{dam(8,4,4,false);dam(15,4,4,false)},
       "digue y=15 H=4 + 40 forêt":()=>{dam(15,4,4,false);pick(40,i=>s.cov[i]===2||s.cov[i]===3).forEach(i=>s.cov[i]=0)},
       "digue le long de la ville":()=>{s.each((i,x,y,d)=>{if(d===1&&y>=16&&y<=23&&s.cov[i]!==4)s.h[i]+=2})} },
- m4:{ "forêt 150":()=>pick(150,i=>s.cov[i]===3).forEach(i=>s.cov[i]=0),
+ m4:{ 'BARRAGE plein y=8 4 m':()=>s.buildDam(8*GW+ax(8),4,false),
+      'ECRETEUR y=8 4 m':()=>s.buildDam(8*GW+ax(8),4,true),
+      "forêt 150":()=>pick(150,i=>s.cov[i]===3).forEach(i=>s.cov[i]=0),
       "prairie 450":()=>pick(450,i=>s.cov[i]===3).forEach(i=>s.cov[i]=1),
       "prairie 450 par le bas":()=>pick(450,i=>s.cov[i]===3,(a,b)=>s.h[a]-s.h[b]).forEach(i=>s.cov[i]=1),
       "prairie 250":()=>pick(250,i=>s.cov[i]===3).forEach(i=>s.cov[i]=1),
@@ -88,7 +93,8 @@ const strategies={
       "retenue y=14 + 4 dessus + 6 nappe d=9":()=>{dam(14,4,4,false);pumpsAt([13,12],[-1,1]);pumpsAt([6,18,24],[-9,9])},
       "2 retenues + 6 pompes dessus":()=>{dam(8,4,4,false);dam(16,4,4,false);pumpsAt([7,6,5],[0]);pumpsAt([15,14,13],[0])},
       "8 pompes d=8 seulement":()=>pumpsAt([6,12,18,24],[-8,8]) },
- m6:{ 'BARRAGE y=15 4 m + prairie 200 + 12 pompes d=8':()=>{bdam(15,4);pick(200,i=>s.cov[i]===3).forEach(i=>s.cov[i]=1);pumpsAt([4,8,12,16,20,24],[-8,8])},
+ m6:{ 'ECRETEUR y=15 4 m + prairie 200 + 12 pompes d=8':()=>{s.buildDam(15*GW+ax(15),4,true);pick(200,i=>s.cov[i]===3).forEach(i=>s.cov[i]=1);pumpsAt([4,8,12,16,20,24],[-8,8])},
+      'BARRAGE y=15 4 m + prairie 200 + 12 pompes d=8':()=>{bdam(15,4);pick(200,i=>s.cov[i]===3).forEach(i=>s.cov[i]=1);pumpsAt([4,8,12,16,20,24],[-8,8])},
       "prairie 250 + 12 pompes d=7":()=>{pick(250,i=>s.cov[i]===3).forEach(i=>s.cov[i]=1);pumpsAt([4,8,12,16,20,24],[-7,7])},
       "digue y=15 H=4 + prairie 200 + 12 pompes d=8":()=>{dam(15,4,4,false);pick(200,i=>s.cov[i]===3).forEach(i=>s.cov[i]=1);pumpsAt([4,8,12,16,20,24],[-8,8])},
       "digue y=15 H=6 k=5 + prairie 150 + 10 pompes":()=>{dam(15,5,6,false);pick(150,i=>s.cov[i]===3).forEach(i=>s.cov[i]=1);pumpsAt([4,8,12,20,24],[-8,8])},
