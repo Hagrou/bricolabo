@@ -12,6 +12,7 @@ const C=[
 ];
 // qualité : SRC = charge du ruissellement produit par chaque occupation (indice, en mg/L) · TRAP = part retenue à chaque pas par la végétation
 const SRC=[2,5,100,60,40,0], TRAP=[0.03,0.03,0,0,0,0.08], SEUIL=50, ATH=30, SEAK=0.3, REC=0.5;   // REC : part de l'évaporation des terres qui retombe sur place, le reste part avec le vent
+const COST_RES=20;
 const COST_UP=5, COST_DOWN=4, COST_PUMP=10, COST_SLOW=2, COST_UNFAST=1;
 // fr : 0 rien · 1 frein (haies, méandres) · 2 accélérateur (fossés, lit rectifié)
 function nOf(i){const riv=dist[i]===0,b=riv?NRIV:C[cov[i]].n;return fr[i]===1?(riv?0.12:Math.max(b,0.35)):fr[i]===2?(riv?0.02:Math.min(b,0.03)):b}
@@ -19,10 +20,20 @@ const h=new Float32Array(N), W=new Float32Array(N), S=new Float32Array(N), G=new
       dW=new Float32Array(N), dG=new Float32Array(N), cropFl=new Float32Array(N), cropDry=new Float32Array(N), L=new Float32Array(N), dL=new Float32Array(N), V=new Float32Array(N),
       cov=new Uint8Array(N), sea=new Uint8Array(N), pump=new Uint8Array(N), fr=new Uint8Array(N), rough=new Float32Array(N), dist=new Float32Array(N), side=new Int8Array(N);
 let pumps=[], oris=[];
+// réserve (retenue de substitution) : bassin bâché, isolé du sol, rempli en hiver en pompant la nappe, vidé en été pour irriguer
+const res=new Uint8Array(N); let resTiles=[], resServe=[], resSrc=[];
+const RES_D=5000, RES_FILL=2, RES_R=6, RES_SEUIL=0.45, CN=20;   // 5 m d'eau par case pleine · remplissage max 2 mm/pas et par case · rayon d'irrigation 6 cases · seuil de nappe 45 % · nappe à 20 mg/L (indice)
+function rebuildRes(){resTiles=[];resServe=[];resSrc=[];const src=new Uint8Array(N),srv=new Uint8Array(N);
+  for(let i=0;i<N;i++)if(res[i])resTiles.push(i);
+  for(const i of resTiles){const x=i%GW,y=i/GW|0;
+    for(let dy=-RES_R;dy<=RES_R;dy++)for(let dx=-RES_R;dx<=RES_R;dx++){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=GW||yy>=GH-2)continue;const j=yy*GW+xx;
+      if(Math.abs(dx)<=1&&Math.abs(dy)<=1&&!sea[j])src[j]=1;if(!res[j])srv[j]=1}}
+  for(let i=0;i<N;i++){if(src[i])resSrc.push(i);if(srv[i])resServe.push(i)}}
+function setRes(i,on){res[i]=on?1:0;rebuildRes()}
 const QORI=30*600/(DX*DX/1000);   // pertuis d'un barrage écrêteur : 30 m³/s quand la retenue est pleine
 const st={t:0,rain:{left:0,int:0},etpDay:3,meteo:"temp",script:null,nLand:1,axis:[],noise:null,
   A:20,loop:false,cumSea:0,cap:0,cumP:0,cumE:0,cumQ:0,qAcc:0,qNow:0,lastPeak:0,prevPeak:0,hist:[],m:null};
-function resetMetrics(){st.m={infl:0,polOut:0,cMax:0,cHours:0,cNow:0,rains:0,rain:0,peakT:0,peak:0,minQ:1e9,floodMax:0,floodH:0,stress:0,evapOpen:0,pumpG:0,pumpW:0,floodNow:0,dryNow:0}}
+function resetMetrics(){st.m={algae:0,qWin:0,nWin:0,resIn:0,resEvap:0,resOut:0,resRain:0,resCmax:CN,infl:0,polOut:0,cMax:0,cHours:0,cNow:0,rains:0,rain:0,peakT:0,peak:0,minQ:1e9,floodMax:0,floodH:0,stress:0,evapOpen:0,pumpG:0,pumpW:0,floodNow:0,dryNow:0}}
 resetMetrics();
 function rng(seed){let s=seed>>>0;return()=>{s=(s+0x6D2B79F5)>>>0;let r=Math.imul(s^s>>>15,1|s);r=(r+Math.imul(r^r>>>7,61|r))^r;return((r^r>>>14)>>>0)/4294967296}}
 function each(fn){for(let y=0;y<GH-2;y++)for(let x=0;x<GW;x++)fn(y*GW+x,x,y,dist[y*GW+x])}
@@ -46,7 +57,7 @@ function generate(seed,setup){
     let z=1+(GH-3-y)/(GH-3)*14+cs+((n1(x,y)-.5)*12+(n2(x,y)-.5)*3)*nz;
     h[i]=Math.max(0.5,z);
   }
-  pumps=[];
+  pumps=[]; res.fill(0); rebuildRes();
   // comblement des cuvettes pour que les rivières atteignent la mer
   const F=new Float32Array(N);for(let i=0;i<N;i++)F[i]=sea[i]?h[i]:1e9;
   for(let ch=true,it=0;ch&&it<400;it++){ch=false;
@@ -69,7 +80,7 @@ function generate(seed,setup){
   st.etpDay=e;st.meteo=m;st.script=sc;
   L.fill(0); resetRun();
 }
-function resetRun(){st.A=20;st.cumSea=0;st.t=0;st.rain={left:0,int:0};st.cumP=st.cumE=st.cumQ=0;st.qAcc=0;st.qNow=0;st.lastPeak=st.prevPeak=0;st.hist=[];cropFl.fill(0);cropDry.fill(0);resetMetrics()}
+function resetRun(){st.res={V:0,M:0,age:0};st.A=20;st.cumSea=0;st.t=0;st.rain={left:0,int:0};st.cumP=st.cumE=st.cumQ=0;st.qAcc=0;st.qNow=0;st.lastPeak=st.prevPeak=0;st.hist=[];cropFl.fill(0);cropDry.fill(0);resetMetrics()}
 function startRain(int,hours){ if(st.lastPeak>0)st.prevPeak=st.lastPeak; st.lastPeak=0; st.rain={left:Math.round(hours*6),int:int}; }
 function setPump(i,on){pump[i]=on?1:0;pumps=[];for(let k=0;k<N;k++)if(pump[k])pumps.push(k)}
 function snapshot(){return{W:W.slice(),S:S.slice(),G:G.slice(),L:L.slice()}}
@@ -87,7 +98,7 @@ function step(){
   const rain=st.rain, rs=rain.left>0?rain.int*DT:0; if(rain.left>0)rain.left--;
   const etp=st.etpDay/144, wetF=rs>0?0.2:1;
   let cE=0;
-  for(let i=0;i<N;i++){ if(sea[i])continue;
+  for(let i=0;i<N;i++){ if(sea[i])continue; if(res[i]){W[i]=0;L[i]=0;continue}
     const c=C[cov[i]],cap=c.cap; let w=W[i]+rs, s=S[i]; rough[i]=nOf(i);
     const inf=Math.min(w,c.inf*DT*(1-0.8*s/cap),cap-s); let l=L[i];
     if(inf>0){l*=1-inf/w;w-=inf;s+=inf;m.infl+=inf}                                  // ce qui s'infiltre est filtré par le sol
@@ -99,12 +110,25 @@ function step(){
     const e1=Math.min(w,etp); w-=e1; if(w>100)m.evapOpen+=e1;
     const e2=Math.min(s,etp*c.kc*Math.min(1,s/(0.4*cap))*wetF); s-=e2; cE+=e1+e2;
     W[i]=w;S[i]=s; }
+  // la réserve : pluie directe, évaporation, remplissage d'hiver par la nappe, irrigation d'été
+  if(resTiles.length){const R=st.res,nR=resTiles.length,cap=nR*RES_D,fill=sc?st.t<(sc.fillUntil||0)*144:st.etpDay<=2;
+    const v0=R.V; R.V+=rs*nR; m.resRain+=rs*nR;
+    if(R.V>0){const e=Math.min(R.V,etp*1.1*nR);R.V-=e;cE+=e;m.resEvap+=e}
+    if(fill&&R.V<cap&&resSrc.length){let avg=0;for(const c of resSrc)avg+=G[c];avg/=resSrc.length;
+      if(avg>RES_SEUIL*GMAX){const per=Math.min(RES_FILL*nR,cap-R.V)/resSrc.length;let got=0;
+        for(const c of resSrc){const q=Math.min(per,Math.max(0,G[c]-RES_SEUIL*GMAX));G[c]-=q;got+=q}R.V+=got;R.M+=got*CN;m.resIn+=got}}
+    if(!fill&&R.V>0){const tgt=C[2].cap*0.48;let need=0;lst.length=0;
+      for(const j of resServe)if(cov[j]===2&&S[j]<tgt){const nd=Math.min(tgt-S[j],0.2);need+=nd;lst.push(j,nd)}
+      if(need>0){const take=Math.min(need,R.V),r=take/need,cc=R.M/R.V;R.V-=take;R.M-=take*cc;m.resOut+=take;for(let k=0;k<lst.length;k+=2)S[lst[k]]+=lst[k+1]*r}}
+    // âge moyen de l'eau stockée : l'eau neuve rajeunit le stock, le temps le vieillit
+    if(R.V>1){const nw=Math.max(0,R.V-v0);R.age=(R.age*Math.max(0,R.V-nw))/R.V+DT/24;const cc=R.M/R.V;if(cc>m.resCmax)m.resCmax=cc;
+      if(st.etpDay>=5&&R.age>20)m.algae+=DT/24}else R.age=0}
   st.cumE+=cE; st.cumP+=rs*st.nLand;
   // boucle fermée : l'atmosphère se charge de l'évaporation de la mer et des terres, et se vide en pluie
   if(st.loop){const es=st.etpDay*SEAK/144; st.A+=es+REC*cE/st.nLand; st.cumSea+=es;
     if(rain.left<=0&&st.A>=ATH){const amt=st.A*0.85; st.A-=amt; startRain(amt/4,4); m.rains++}}
   // pompes : irriguent les cultures dans un rayon de 3 cases, en prenant l'eau de surface puis la nappe
-  for(let q=0;q<pumps.length;q++){const p=pumps[q],px=p%GW,py=p/GW|0,tgt=C[2].cap*0.6;let need=0;lst.length=0;
+  for(let q=0;q<pumps.length;q++){const p=pumps[q],px=p%GW,py=p/GW|0,tgt=C[2].cap*0.48;let need=0;lst.length=0;
     for(let y=py-3;y<=py+3;y++)for(let x=px-3;x<=px+3;x++){ if(x<0||y<0||x>=GW||y>=GH-2)continue;const j=y*GW+x;
       if(cov[j]===2&&S[j]<tgt){const nd=Math.min(tgt-S[j],0.2);need+=nd;lst.push(j,nd)}}
     if(need<=0)continue;
@@ -129,10 +153,10 @@ function step(){
   for(let sub=0;sub<NSUB;sub++){ dW.fill(0); dL.fill(0);
   for(let y=0;y<GH-2;y++)for(let x=0;x<GW;x++){const i=y*GW+x,w=W[i]; V[i]=0; if(w<0.01)continue;
     const Hi=h[i]+w/1000; let d0=0,d1=0,d2=0,d3=0,j,d;
-    if(x>0){j=i-1;d=Hi-h[j]-W[j]/1000;if(d>0)d0=d}
-    if(x<GW-1){j=i+1;d=Hi-h[j]-W[j]/1000;if(d>0)d1=d}
-    if(y>0){j=i-GW;d=Hi-h[j]-W[j]/1000;if(d>0)d2=d}
-    j=i+GW;d=Hi-(sea[j]?0:h[j]+W[j]/1000);if(d>0)d3=d;
+    if(x>0){j=i-1;d=Hi-h[j]-W[j]/1000;if(d>0&&!res[j])d0=d}
+    if(x<GW-1){j=i+1;d=Hi-h[j]-W[j]/1000;if(d>0&&!res[j])d1=d}
+    if(y>0){j=i-GW;d=Hi-h[j]-W[j]/1000;if(d>0&&!res[j])d2=d}
+    j=i+GW;d=Hi-(sea[j]?0:h[j]+W[j]/1000);if(d>0&&!res[j])d3=d;
     const sum=d0+d1+d2+d3; if(sum<=0)continue;
     const mx=Math.max(d0,d1,d2,d3), v=Math.pow(w/1000,0.667)*Math.sqrt(mx/DX)/rough[i];
     V[i]=v; const out=w*Math.min(0.8,v*150/DX);
@@ -155,6 +179,7 @@ function step(){
   st.cumQ+=qs; st.qAcc+=qs; st.t++;
   if(st.t%3===0){ const q=st.qNow=st.qAcc/3*QK; st.qAcc=0; if(q>st.lastPeak)st.lastPeak=q; if(q>m.peak){m.peak=q;m.peakT=st.t}
     if(sc&&st.t>=sc.lowFrom*144&&q<m.minQ)m.minQ=q;
+    if(sc&&sc.fillUntil&&st.t>=4*144&&st.t<sc.fillUntil*144){m.qWin+=q;m.nWin++}
     const cw=W[st.cap],c=cw>3?L[st.cap]/cw:0; m.cNow=c; if(c>m.cMax)m.cMax=c; if(c>SEUIL)m.cHours+=0.5; m.rain=st.cumP/st.nLand; m.et=st.cumE/st.nLand;
     st.hist.push({q:q,r:rs/DT,c:c}); if(!sc&&st.hist.length>432)st.hist.shift(); }
 }
@@ -190,7 +215,7 @@ function setOrifices(l){oris=l}
 function buildDam(i,H,ecr){const p=damPlan(i,H);if(!p||!p.ok)return null;const o=ecr?orificeFor(p,i):null;
   for(const j of p.line)h[j]=Math.max(h[j],p.crest);if(o)oris.push(o);return p}
 function runAll(){while(st.t<st.script.days*144)step();st.m.t50=half();st.m.harvest=harvest()}
-const api={QORI,orificeFor,setOrifices,buildDam,damPlan,hedgeNb,harvest,cropFl,cropDry,L,SRC,TRAP,SEUIL,ATH,SEAK,REC,half,fr,nOf,COST_SLOW,COST_UNFAST,NRIV,dist,side,GW,GH,N,DT,GMAX,DAQ,DX,FLOOD,C,COST_UP,COST_DOWN,COST_PUMP,h,W,S,G,V,cov,sea,pump,st,each,inTown,generate,resetRun,startRain,setPump,snapshot,restore,step,runAll};
+const api={COST_RES,res,setRes,RES_D,RES_R,RES_SEUIL,CN,QORI,orificeFor,setOrifices,buildDam,damPlan,hedgeNb,harvest,cropFl,cropDry,L,SRC,TRAP,SEUIL,ATH,SEAK,REC,half,fr,nOf,COST_SLOW,COST_UNFAST,NRIV,dist,side,GW,GH,N,DT,GMAX,DAQ,DX,FLOOD,C,COST_UP,COST_DOWN,COST_PUMP,h,W,S,G,V,cov,sea,pump,st,each,inTown,generate,resetRun,startRain,setPump,snapshot,restore,step,runAll};
 return api;
 })();
 
@@ -221,6 +246,7 @@ function solOps(dam){const S=Sim;return{
   slow:f=>S.each((i,x,y,d)=>{if(S.cov[i]!==4&&f(i,x,y,d))S.fr[i]=1}),
   pumps:(ys,ds)=>{for(const y of ys)for(const dd of ds){const x=S.st.axis[y]+dd;if(x>=0&&x<S.GW)S.setPump(y*S.GW+x,1)}},
   dam:(y,H,ecr)=>dam(y*S.GW+S.st.axis[y],H,ecr),
+  res:(y,dx,n)=>{const x0=S.st.axis[y]+dx;for(let yy=y;yy<y+n;yy++)for(let xx=x0;xx<x0+n;xx++)S.setRes(yy*S.GW+xx,1)},
   low:(a,b)=>S.h[a]-S.h[b]}}
 const MISSIONS=[
 { id:"m1", name:"Premier orage", theme:"Ruissellement et infiltration",
@@ -287,6 +313,16 @@ const MISSIONS=[
   setup:s=>s.each((i,x,y,d)=>{if(s.cov[i]===4)return;if(s.h[i]<19&&d>=1)s.cov[i]=2;else if(s.h[i]>=19&&s.st.noise(x,y)<0.75)s.cov[i]=3}),
   script:{days:45,loop:true,rain:[],etp:[[0,5]],lowFrom:0}, sol:{txt:"Semez de la prairie sur 450 cases de sol nu : 450 crédits, sans toucher aux cultures ni installer de pompe. Un sol nu sec n'évapore presque rien ; couvert de végétation, il renvoie de l'eau vers le ciel tant qu'il en a. L'atmosphère se remplit plus vite, les pluies reviennent plus tôt et les cultures souffrent beaucoup moins. Le nombre de pluies change peu : c'est leur rythme qui compte.",apply:o=>o.cover(450,(i)=>Sim.cov[i]===3,1)},
   obj:[oEt(0.12),oStress(0.4),oCrops(0.9),oNoPump()] },
+{ id:"mb", name:"La grande réserve", theme:"Retenues de substitution",
+  brief:"La plaine manque d'eau chaque été. Une idée est débattue : pomper la nappe en hiver, quand elle est haute, pour remplir une grande réserve bâchée, puis irriguer en été avec cette eau plutôt que de pomper la nappe au moment où la rivière est la plus basse. Comparez cette solution à d'autres : pompes d'été, infiltration, sobriété. Regardez aussi ce que devient l'eau stockée à l'air libre.",
+  hint:"Une réserve irrigue les cultures à 6 cases à la ronde et ne se remplit que tant que la nappe autour d'elle dépasse un seuil. Suivez son bilan dans « État du territoire » : ce qui est entré, ce qui s'est évaporé, ce qui a servi.",
+  learn:"Stocker l'eau d'hiver déplace le prélèvement dans le temps : on puise quand la nappe est haute plutôt qu'au moment où la rivière est au plus bas. Mais l'eau pompée en hiver manque aussi à la nappe et à la rivière d'hiver, une partie s'évapore à l'air libre, et l'eau stagnante se concentre et se réchauffe, ce qui favorise les algues. Le bilan dépend de la taille de la réserve, du seuil de remplissage, de la météo et de ce qu'on compare : le jeu donne des ordres de grandeur, pas un verdict sur les projets réels.",
+  tools:[], budget:340, speed:16, sqrt:true, meteo:"70 jours · 25 jours d'hiver pluvieux (remplissage autorisé), 15 jours de printemps, puis 30 jours secs et chauds",
+  setup:s=>s.each((i,x,y,d)=>{if(s.h[i]<19&&d>=1&&s.cov[i]!==4)s.cov[i]=2}),
+  sol:{txt:"Pour tenir les trois objectifs : quatre réserves de 25 ha (2 × 2 cases), deux de chaque côté de la rivière, à 7 ou 8 cases du lit, sur les rangées 8 et 18 : 320 crédits. Réparties ainsi, elles arrosent presque toute la plaine : le manque d'eau des cultures baisse d'environ trois quarts. Comme on ne pompe plus l'été, la rivière garde 95 % de son débit d'été ; avec 8 pompes d'été à la place, elle en perd 40 %. Le prix, visible dans le bilan : environ 4,7 millions de m³ pompés dans la nappe en hiver, un débit d'hiver en baisse d'un quart, près de 300 000 m³ perdus par évaporation pendant l'attente et l'usage, soit 5 à 6 % de l'eau stockée, et une eau qui se concentre et reste stagnante au chaud tout l'été, ce qui favorise les algues. Une seule réserve de 100 ha d'un bloc coûterait autant mais n'arroserait qu'à 6 cases autour d'elle : les deux tiers de son eau resteraient inutilisés.",
+    apply:o=>{for(const y of [8,18]){o.res(y,-8,2);o.res(y,7,2)}}},
+  script:{days:70,fillUntil:25,rain:[[2,8,6],[40,10,4],[80,6,10],[130,12,4],[170,8,5],[250,8,6],[330,10,4],[420,6,8],[500,8,5],[650,6,4],[800,8,3]],etp:[[0,1],[25,3.5],[40,6]],lowFrom:58},
+  obj:[oStress(0.5),oLow(0.9),oCrops(0.9)] },
 { id:"m6", name:"Un territoire, quatre saisons", theme:"Tout concilier",
   brief:"Une année entière en accéléré : pluies d'hiver avec un gros orage sur sol saturé, puis un été sec. Protégez la ville, gardez les cultures en vie et la rivière en eau, avec un budget qui ne permet pas tout.",
   hint:"Chaque aménagement a deux faces : la forêt absorbe la crue mais boit en été, la retenue protège et irrigue mais s'évapore, la pompe sauve la récolte mais prend à la rivière.",

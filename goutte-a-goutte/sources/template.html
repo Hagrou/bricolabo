@@ -108,7 +108,8 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px}
 details p{margin-top:6px !important;color:var(--muted)}
 #mverdict{border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:6px}
 #mverdict h3{font:700 17px var(--display);margin:0}
-#mverdict.win h3{color:var(--ok)} #mverdict.lose h3{color:var(--alert)}
+#mverdict.win h3{color:var(--ok)}
+#mvextra{white-space:pre-line} #mverdict.lose h3{color:var(--alert)}
 dl{display:grid;grid-template-columns:1fr auto;gap:3px 12px;margin:0;font-size:13px}
 dt{color:var(--muted)} dd{margin:0;font:500 13px var(--mono);font-variant-numeric:tabular-nums;text-align:right}
 #hydro{width:100%;height:190px;display:block}
@@ -221,6 +222,7 @@ input[type=range]{width:110px;accent-color:var(--bistre)}
       <dt>Récolte attendue</dt><dd id="harv">–</dd>
       <dt>Pollution au captage</dt><dd id="cnow">0</dd>
       <dt>Pollution partie en mer</dt><dd id="pol">0</dd>
+      <dt>Réserve</dt><dd id="resv">–</dd>
       <dt>Évaporé par les plans d'eau</dt><dd id="evo">0</dd>
       <dt>Pompé dans la rivière</dt><dd id="pw">0</dd>
       <dt>Pompé dans la nappe</dt><dd id="pg">0</dd>
@@ -271,6 +273,7 @@ const TOOLS=[{id:"inspect",name:"Sonder",txt:"Survolez la carte pour lire l'éta
           {id:"down",name:"Creuser (−2 m)",cost:s.COST_DOWN,txt:"Abaisse le terrain de 2 m. Un creux recueille le ruissellement qui passe, et s'il descend jusqu'à la nappe, il se remplit par le dessous."},
           {id:"slow",name:"Haies et méandres",cost:s.COST_SLOW,txt:"Freine l'eau sans changer le sol : haies et talus en travers de la pente, ou méandres et végétation dans le lit de la rivière. L'eau arrive plus tard, plus étalée, et a le temps de s'infiltrer. Dans un champ, la haie prend un dixième de la surface, mais elle abrite les champs voisins du vent : +5 % de récolte autour d'elle, +8 % entre deux haies. Dans la rivière, une eau plus lente est aussi plus haute. Repassez sur une case pour retirer l'aménagement."},
           {id:"fast",name:"Fossés et lit rectifié",cost:0,txt:"Accélère l'eau : fossés de drainage sur les versants, lit rectifié et curé dans la rivière. L'eau quitte vite la parcelle, et arrive tout aussi vite, et en même temps que les autres, à l'aval."},
+          {id:"res",name:"Réserve",cost:s.COST_RES,txt:"Peignez une réserve d'eau : un bassin bâché de 5 m de profondeur (une case, c'est 6,25 ha et environ 310 000 m³). Isolée du sol, elle ne recharge pas la nappe. Pendant la saison de remplissage, des forages pompent la nappe autour d'elle tant qu'elle reste au-dessus d'un seuil ; ensuite, elle irrigue les cultures à 6 cases à la ronde. Elle reçoit la pluie, s'évapore au soleil, et son eau se concentre et se réchauffe. Repassez sur une case pour la retirer."},
           {id:"pump",name:"Pompe",cost:s.COST_PUMP,txt:"Irrigue les cultures à 3 cases à la ronde. Elle prend d'abord l'eau de surface de sa case (rivière, retenue), sinon elle puise dans la nappe. Cliquez de nouveau pour la retirer."}]);
 let mode="mission", mi=0, phase="prep", ctx=null, lastHist=null, tal=null, verdict=null;
 const COST_ECR=10;
@@ -288,6 +291,7 @@ function tally(){let c=0,nt=0,cr=0,cr0=0;
     if(cov[i]===2)cr++; if(ctx.cov0[i]===2)cr0++ }
   let np=0;for(let i=0;i<N;i++)np+=pump[i];
   for(const d of dams)if(d.ori)c+=COST_ECR;
+  for(let i=0;i<N;i++)if(s.res[i])c+=s.COST_RES;
   return{cost:Math.round(c),newTown:nt,crops:cr,crops0:cr0,pumps:np}}
 function loadMission(i){ if(busy)return; $("msolbox").open=false; $("mhintbox").open=false; busy=true; mode="mission"; mi=i; phase="load"; lastHist=null; verdict=null; renderNav(); renderCard();
   setTimeout(()=>{const m=M(); st.script=m.script; st.meteo="none"; s.generate(SEED,m.setup);
@@ -301,7 +305,7 @@ function loadSandbox(){ if(busy)return; mode="sandbox"; phase="free"; ctx=null; 
   renderNav(); buildTools(); setTool("inspect"); renderCard(); }
 function launch(){ s.restore(ctx.snap); s.resetRun(); st.etpDay=M().script.etp[0][1]; phase="run"; playing=true; verdict=null; setTool("inspect"); renderCard(); }
 function backToPrep(){ if(st.hist.length>4)lastHist=st.hist.slice(); s.restore(ctx.snap); s.resetRun(); st.etpDay=M().script.etp[0][1]; phase="prep"; verdict=null; renderCard(); }
-function resetTerrain(){ clearDams(); s.fr.set(ctx.fr0); cov.set(ctx.cov0); h.set(ctx.h0); for(let i=0;i<N;i++)if(pump[i])s.setPump(i,0); s.restore(ctx.snap); tal=tally(); baseDirty=true; renderCard(); }
+function resetTerrain(){ clearDams(); for(let i=0;i<N;i++)if(s.res[i])s.setRes(i,0); s.fr.set(ctx.fr0); cov.set(ctx.cov0); h.set(ctx.h0); for(let i=0;i<N;i++)if(pump[i])s.setPump(i,0); s.restore(ctx.snap); tal=tally(); baseDirty=true; renderCard(); }
 function applySolution(){ if(mode!=="mission"||phase==="load")return; if(phase!=="prep")backToPrep(); resetTerrain();
   M().sol.apply(solOps((i,H,e)=>placeDam(i,H,e,true))); tal=tally(); baseDirty=true; isoDirty=true; renderCard();
   $("msolbox").open=true; $("tooltext").textContent="Solution appliquée : regardez la carte, puis lancez la simulation pour la vérifier."}
@@ -334,9 +338,13 @@ function renderCard(){
   else if(phase==="done"){ const v=$("mverdict"); v.hidden=false; v.className=verdict.win?"win":"lose";
     $("mvtitle").textContent=verdict.win?"Mission réussie":"Objectifs non atteints";
     $("mvtext").textContent=verdict.win?m.learn:"Regardez sur l'hydrogramme où votre courbe s'écarte de la référence, puis ajustez. "+m.hint;
-    const x=[];if(st.m.evapOpen>ctx.base.evapOpen*1.5+200)x.push("Les plans d'eau ont évaporé "+kM3(st.m.evapOpen)+", contre "+kM3(ctx.base.evapOpen)+" sans aménagement.");
+    const x=[];const mm=st.m;
+    if(mm.resIn>0){const tot=mm.resIn+mm.resRain;x.push("Réserve : "+kM3(mm.resIn)+" pompés dans la nappe pendant le remplissage, "+kM3(mm.resRain)+" de pluie ; "+kM3(mm.resEvap)+" évaporés ("+Math.round(mm.resEvap/tot*100)+" %), "+kM3(mm.resOut)+" ont irrigué, "+kM3(st.res.V)+" restent.");
+      x.push("Qualité : l'eau stockée est montée jusqu'à "+Math.round(mm.resCmax)+" mg/L (départ "+s.CN+") en s'évaporant, et elle est restée "+Math.round(mm.algae)+" jours stagnante au chaud, ce qui favorise les algues.")}
+    if(mm.nWin&&ctx.base.nWin){const a=mm.qWin/mm.nWin,b0=ctx.base.qWin/ctx.base.nWin;x.push("Débit moyen de la rivière pendant l'hiver : "+fx(a)+" m³/s, contre "+fx(b0)+" sans aménagement ("+(a<b0?"−":"+")+Math.abs(Math.round((a/b0-1)*100))+" %).")}
+    if(st.m.evapOpen>ctx.base.evapOpen*1.5+200)x.push("Les plans d'eau ont évaporé "+kM3(st.m.evapOpen)+", contre "+kM3(ctx.base.evapOpen)+" sans aménagement.");
     if(st.m.pumpW+st.m.pumpG>0)x.push("Pompé : "+kM3(st.m.pumpW)+" en rivière, "+kM3(st.m.pumpG)+" en nappe.");
-    $("mvextra").textContent=x.join(" "); $("mvextra").hidden=!x.length;
+    $("mvextra").textContent=x.join("\n"); $("mvextra").hidden=!x.length;
     act.appendChild(btn("Modifier et réessayer",backToPrep,verdict.win?"":"go"));
     if(verdict.win&&mi<MISSIONS.length-1)act.appendChild(btn("Mission suivante",()=>loadMission(mi+1),"go"));
     if(verdict.win&&mi===MISSIONS.length-1)act.appendChild(btn("Continuer en bac à sable",loadSandbox,"go")) }
@@ -404,6 +412,7 @@ function draw(){ if(baseDirty)drawBase(); const c=cx2;
   if(st.rain.left>0&&!reduce&&phase!=="prep"&&view!=="vit"){c.strokeStyle="rgba(235,244,255,.55)";c.lineWidth=1;c.beginPath();
     const n=Math.min(260,st.rain.int*6),Wp=ts*GW,Hp=ts*(GH-2);
     for(let k=0;k<n;k++){const x=Math.random()*Wp,y=Math.random()*Hp;c.moveTo(x,y);c.lineTo(x-3,y+8)}c.stroke()}
+  for(let i=0;i<N;i++)if(s.res[i]){const px=(i%GW)*ts,py=(i/GW|0)*ts,nR=s.res.reduce((a,v)=>a+v,0)||1,f=Math.max(0,Math.min(1,st.res.V/(nR*s.RES_D)));c.fillStyle="rgb(150,142,126)";c.fillRect(px,py,ts+.5,ts+.5);c.fillStyle="rgb(58,66,74)";c.fillRect(px+2,py+2,ts-4,ts-4);if(f>0.005){c.globalAlpha=0.35+0.65*f;c.fillStyle="rgb(52,120,196)";c.fillRect(px+2,py+2,ts-4,ts-4);c.globalAlpha=1}}
   for(let i=0;i<N;i++)if(damMap[i]){const px=(i%GW)*ts,py=(i/GW|0)*ts;c.fillStyle="rgb(170,168,160)";c.fillRect(px,py,ts+.5,ts+.5);c.fillStyle="#7d7b74";
     const dd=dams[damMap[i]-1];if(dd.along)c.fillRect(px,py+ts*.42,ts,ts*.16);else c.fillRect(px+ts*.42,py,ts*.16,ts);
     if(dd.oriTile===i){c.fillStyle="rgb(40,112,190)";if(dd.along)c.fillRect(px+ts*.36,py+ts*.3,ts*.28,ts*.4);else c.fillRect(px+ts*.3,py+ts*.36,ts*.4,ts*.28)}}
@@ -496,6 +505,10 @@ function drawFr(f,riv,x,y,z){const S=cam.S;
     else{GX.fillStyle="#2f5e34";for(let t=0;t<4;t++){P(x+0.14+0.24*t,y+0.5,z);GX.beginPath();GX.arc(_x,_y-0.07*S*vf,0.085*S,0,7);GX.fill()}}}
   else if(f===2){if(riv){line(x+0.3,y,x+0.3,y+1,z+0.01,"#9aa3a8",Math.max(1,S*0.06));line(x+0.7,y,x+0.7,y+1,z+0.01,"#9aa3a8",Math.max(1,S*0.06))}
     else line(x+0.5,y+0.06,x+0.5,y+0.94,z+0.005,"#4f7391",Math.max(1.2,S*0.08))}}
+function drawRes(x,y,z){const R=st.res,nR=s.res.reduce((a,v)=>a+v,0)||1,f=Math.max(0,Math.min(1,R.V/(nR*s.RES_D)));
+  box(x+0.03,y+0.03,x+0.97,y+0.97,z,z+0.24,[176,168,150],"rgb(58,66,74)");                     // digue de terre et bâche
+  if(f>0.005){const zw=z+0.04+0.19*f;P(x+0.1,y+0.1,zw);const ax=_x,ay=_y;P(x+0.9,y+0.1,zw);const bx=_x,by=_y;P(x+0.9,y+0.9,zw);const cx=_x,cy=_y;P(x+0.1,y+0.9,zw);
+    quad(ax,ay,bx,by,cx,cy,_x,_y);const cc=R.V>1?R.M/R.V:s.CN,g=Math.max(0,Math.min(1,(cc-s.CN)/10));GX.fillStyle=mix([52,120,196],[70,140,90],g);GX.fill()}}
 function drawPump(x,y,z){const S=cam.S;box(x+0.36,y+0.36,x+0.64,y+0.64,z,z+0.16,[70,120,170],"#d7e6f2");
   P(x+0.5,y+0.5,z+0.16);GX.strokeStyle="#2c4a66";GX.lineWidth=Math.max(1,S*0.04);GX.beginPath();GX.moveTo(_x,_y);GX.lineTo(_x,_y-0.2*S*vf);GX.stroke();
   GX.fillStyle="#2c4a66";GX.beginPath();GX.arc(_x,_y-0.2*S*vf,Math.max(1.5,0.05*S),0,7);GX.fill()}
@@ -536,10 +549,11 @@ function render3d(){ if(litDirty)computeLit(); setCam(); sortOrder();
     const w=W[i];
     if(terr){
       if(w>2){const a=Math.min(.92,0.3+Math.log10(w/2)/2.6);quad(QX[o],QY[o],QX[o+1],QY[o+1],QX[o+2],QY[o+2],QX[o+3],QY[o+3]);GX.fillStyle=w>600?"rgba(22,66,150,"+a+")":"rgba(28,104,214,"+a+")";GX.fill()}
-      if(sc>=4.5&&!damMap[i]&&!(w>300&&cov[i]!==4)){drawCover(cov[i],i,x,y,z); if(s.fr[i])drawFr(s.fr[i],dist[i]===0,x,y,z)}
+      if(sc>=4.5&&!damMap[i]&&!s.res[i]&&!(w>300&&cov[i]!==4)){drawCover(cov[i],i,x,y,z); if(s.fr[i])drawFr(s.fr[i],dist[i]===0,x,y,z)}
       if(cov[i]===4&&w>s.FLOOD){quad(QX[o],QY[o],QX[o+1],QY[o+1],QX[o+2],QY[o+2],QX[o+3],QY[o+3]);GX.strokeStyle="#e0301e";GX.lineWidth=2.2;GX.stroke()}
       else if(cov[i]===2&&S[i]<C[2].cap*.25){P(x+.5,y+.5,z);GX.fillStyle="#d4561c";GX.beginPath();GX.arc(_x,_y-0.3*sc*vf,Math.max(2,sc*0.09),0,7);GX.fill()}}
     else if(cov[i]===4&&sc>=4.5)drawCover(4,i,x,y,z);
+    if(s.res[i])drawRes(x,y,z);
     if(pump[i])drawPump(x,y,z);
     if(i===st.cap&&(view==="qual"||(mode==="mission"&&M().quality)))drawCap(x,y,z);
   }
@@ -630,6 +644,7 @@ function buildLegend(){const lgc=$("lgcov");lgc.innerHTML="";
     ["Remblai","Terrain rehaussé de 2 m, case par case : pour une levée le long d'une rive.",(b)=>b(rgb(COVCOL[1],1),0.14,[150,118,84])],
     ["Creux","Terrain abaissé de 2 m : recueille l'eau qui passe.",(b,x,y)=>{b(rgb(COVCOL[3],1));P(x+.5,y+.5,0);GX.fillStyle="rgba(40,112,190,.75)";GX.beginPath();GX.ellipse(_x,_y,cam.S*0.3,cam.S*0.3*sph,0,0,7);GX.fill()}],
     ["Pompe","Irrigue les cultures à 3 cases à la ronde.",(b,x,y)=>{b(rgb(COVCOL[2],1));drawPump(x,y,0)}],
+    ["Réserve","Bassin bâché rempli en pompant la nappe, qui irrigue à 6 cases à la ronde. Isolé du sol, il s'évapore et son eau se concentre.",(b,x,y)=>{b(rgb(COVCOL[2],1));box(x+0.03,y+0.03,x+0.97,y+0.97,0,0.24,[176,168,150],"rgb(52,120,196)")}],
     ["Captage","Prise d'eau potable de la ville dans la rivière.",(b,x,y)=>{b(rgb(COVCOL[1],1));drawCap(x,y,0)}],
     ["Ville inondée","Plus de 15 cm d'eau dans les rues.",(b,x,y)=>{b(rgb(COVCOL[4],1));drawCover(4,8,x,y,0);P(x,y,0);GX.beginPath();GX.moveTo(_x,_y);P(x+1,y,0);GX.lineTo(_x,_y);P(x+1,y+1,0);GX.lineTo(_x,_y);P(x,y+1,0);GX.lineTo(_x,_y);GX.closePath();GX.fillStyle="rgba(40,112,190,.45)";GX.fill();GX.strokeStyle="#e0301e";GX.lineWidth=2.2;GX.stroke()}],
     ["Culture assoiffée","Moins d'un quart de réserve dans le sol.",(b,x,y)=>{b(rgb(COVCOL[2],1));drawCover(2,3,x,y,0);P(x+.5,y+.5,0);GX.fillStyle="#d4561c";GX.beginPath();GX.arc(_x,_y-0.3*cam.S*vf,cam.S*0.09,0,7);GX.fill()}]];
@@ -777,7 +792,8 @@ function updatePanels(){
     $("cyA").setAttribute("width",Math.max(0,Math.min(1,st.A/s.ATH))*190);$("cyAt").textContent="Atmosphère "+Math.round(st.A)+" / "+s.ATH+" mm";
     $("cy1").textContent=mm(st.cumSea);$("cy2").textContent=mm(P);$("cy3").textContent=mm(E);$("cy4").textContent=mm(st.cumQ/st.nLand);$("cy5").textContent=mm(E-rc);
     $("cycap").textContent="Il pleut quand l'atmosphère est pleine. "+(rc+st.cumSea>1?Math.round(rc/(rc+st.cumSea)*100)+" % de l'eau qui l'a remplie vient des terres, le reste de la mer.":"")}
-  $("evo").textContent=kM3(m.evapOpen);$("pw").textContent=kM3(m.pumpW);$("pg").textContent=kM3(m.pumpG);
+  {const nR=s.res.reduce((a,v)=>a+v,0),R=st.res;$("resv").textContent=nR?Math.round(R.V/(nR*s.RES_D)*100)+" % · "+kM3(R.V)+(R.V>1?" · "+Math.round(R.M/R.V)+" mg/L":""):"–";}
+  $("evo").textContent=kM3(m.evapOpen+m.resEvap);$("pw").textContent=kM3(m.pumpW);$("pg").textContent=kM3(m.pumpG);
   const P=st.cumP/st.nLand,E=st.cumE/st.nLand,Q=st.cumQ/st.nLand,St=Math.max(0,P-E-Q),tot=Math.max(1e-6,E+Q+St);
   $("bp").textContent=Math.round(P)+" mm";
   $("be").style.width=E/tot*100+"%";$("bq").style.width=Q/tot*100+"%";$("bs").style.width=St/tot*100+"%";
@@ -850,14 +866,15 @@ function apply(i){ if(i<0||tool==="inspect")return; const mis=mode==="mission"; 
   const tl=TOOLS.find(x=>x.id===tool),r=(brush&&tool!=="pump")?1:0,x0=i%GW,y0=i/GW|0; let changed=false,refused=false;
   for(let y=y0-r;y<=y0+r;y++)for(let x=x0-r;x<=x0+r;x++){ if(x<0||y<0||x>=GW||y>=GH-2)continue; const j=y*GW+x;
     if(mis&&ctx.cov0[j]===4)continue;                       // la ville existante ne se déplace pas
-    const oc=cov[j],oh=h[j],op=pump[j],of=s.fr[j];
+    const oc=cov[j],oh=h[j],op=pump[j],of=s.fr[j],orr=s.res[j];
     if(tl.cov!==undefined){ if(oc===tl.cov)continue; cov[j]=tl.cov }
+    else if(tool==="res"){ if(oc===4||dist[j]===0)continue; if(stroke.erase===undefined)stroke.erase=!!orr; const nv=stroke.erase?0:1; if(orr===nv)continue; s.setRes(j,nv) }
     else if(tool==="slow"||tool==="fast"){ if(oc===4)continue; const val=tool==="slow"?1:2;
       if(stroke.erase===undefined)stroke.erase=(of===val);          // repasser sur une case aménagée efface
       const nv=stroke.erase?(mis&&ctx.fr0[j]!==val?ctx.fr0[j]:0):val; if(of===nv)continue; s.fr[j]=nv }
     else { if(stroke.has(j))continue; stroke.add(j);
       if(tool==="pump")s.setPump(j,!op); else h[j]=Math.max(0.5,Math.min(95,oh+(tool==="up"?2:-2))) }
-    if(mis){const t2=tally(); if(t2.cost>M().budget){cov[j]=oc;h[j]=oh;s.fr[j]=of;if(pump[j]!==op)s.setPump(j,op);refused=true;continue} tal=t2}
+    if(mis){const t2=tally(); if(t2.cost>M().budget){cov[j]=oc;h[j]=oh;s.fr[j]=of;if(s.res[j]!==orr)s.setRes(j,orr);if(pump[j]!==op)s.setPump(j,op);refused=true;continue} tal=t2}
     if(S[j]>C[cov[j]].cap)S[j]=C[cov[j]].cap; changed=true }
   if(changed){baseDirty=true;if(mis)renderObjectives()} if(refused)flashBudget() }
 cv.addEventListener("pointerdown",e=>{hover=tileAt(e);if(tool!=="inspect"){painting=true;stroke=new Set();try{cv.setPointerCapture(e.pointerId)}catch(_){ }apply(hover)}});

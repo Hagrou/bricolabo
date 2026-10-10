@@ -67,9 +67,10 @@ Le **bac à sable** donne tous les outils sans budget ni objectif, avec une mét
 | Creuser (−2 m) | Recueille le ruissellement, peut atteindre la nappe | S'évapore |
 | Haies et méandres | Freine l'eau sans changer le sol | Une rivière plus lente monte plus haut |
 | Fossés et lit rectifié | Accélère l'eau (bac à sable) | Concentre la crue à l'aval |
+| Réserve | Bassin bâché de 5 m, rempli en pompant la nappe pendant la saison de remplissage (tant qu'elle dépasse un seuil), qui irrigue les cultures à 6 cases à la ronde | Isolée du sol, elle ne recharge pas la nappe ; elle s'évapore, son eau se concentre et stagne au chaud ; 20 crédits par case |
 | Pompe | Irrigue les cultures à 3 cases à la ronde | Prend à la rivière ou à la nappe |
 
-## Les neuf missions
+## Les dix missions
 
 Elles sont ordonnées pour introduire une idée à la fois.
 
@@ -83,7 +84,8 @@ Elles sont ordonnées pour introduire une idée à la fois.
 | 6 | La rivière en été | Nappe et étiage | 34 jours : hiver pluvieux puis été sec | Débit d'été +15 % |
 | 7 | Partager l'eau | Irrigation et débit réservé | Idem | Manque d'eau des cultures −45 %, 60 % du débit d'été gardé, 90 % des cultures gardées |
 | 8 | D'où vient la pluie | Boucle complète du cycle | 45 jours, pluie produite par l'évaporation | Évaporation des terres +12 %, manque d'eau −40 %, 90 % des cultures gardées, aucune pompe |
-| 9 | Un territoire, quatre saisons | Tout concilier | 34 jours avec orage puis été sec | Ville au sec, pic −15 %, manque d'eau −40 %, 50 % du débit d'été, 80 % des cultures |
+| 9 | La grande réserve | Retenues de substitution | 70 jours : hiver (remplissage), printemps, été sec | Manque d'eau −50 %, 90 % du débit d'été gardé, 90 % des cultures gardées ; bilan chiffré de la réserve en fin de mission |
+| 10 | Un territoire, quatre saisons | Tout concilier | 34 jours avec orage puis été sec | Ville au sec, pic −15 %, manque d'eau −40 %, 50 % du débit d'été, 80 % des cultures |
 
 Ce que chaque mission cherche à faire comprendre :
 
@@ -95,7 +97,8 @@ Ce que chaque mission cherche à faire comprendre :
 6. La rivière d'été est faite de la pluie d'hiver infiltrée.
 7. Rivière et nappe sont le même réservoir : pomper dans l'une fait baisser l'autre.
 8. L'eau ne se perd pas, elle tourne. Une région végétalisée renvoie vers le ciel une partie de sa pluie.
-9. Il n'y a pas d'aménagement miracle : tout se joue sur le même stock, d'une saison à l'autre et de l'amont à l'aval.
+9. Stocker l'eau d'hiver déplace le prélèvement dans le temps et protège la rivière d'été, mais prend à la rivière d'hiver, perd de l'eau par évaporation, et laisse une eau stagnante qui se concentre et se réchauffe.
+10. Il n'y a pas d'aménagement miracle : tout se joue sur le même stock, d'une saison à l'autre et de l'amont à l'aval.
 
 ## Le modèle
 
@@ -112,7 +115,8 @@ La simulation avance par pas de 10 minutes sur une grille de 44 × 28 cases de t
 7. **Écoulement de surface.** L'eau descend vers les cases voisines plus basses, à une vitesse donnée par la formule de Manning (rugosité, pente, épaisseur de la lame d'eau). Quatre sous-pas par pas de temps.
 8. **Qualité.** Le ruissellement produit sur une case se charge selon l'occupation, voyage avec l'eau, et se décharge en s'infiltrant ou en traversant de la végétation.
 9. **Récolte.** Chaque case cultivée rapporte une part. Une haie dans le champ en retire un dixième, mais chaque champ voisin d'une haie gagne 5 % (8 % s'il touche deux haies ou plus) : abri du vent, sol protégé, insectes utiles ; un champ resté sous l'eau perd jusqu'à 60 % (au bout d'un jour), un champ assoiffé jusqu'à 70 % (au bout de dix jours).
-10. **Atmosphère**, en cycle fermé : elle reçoit l'évaporation de la mer et la moitié de celle des terres ; il pleut quand elle atteint 30 mm.
+10. **Réserve**, s'il y en a une : un stock commun à toutes les cases de réserve, qui reçoit la pluie directe, s'évapore à 1,1 fois l'évaporation potentielle, se remplit en pompant la nappe autour d'elle pendant la saison de remplissage tant que cette nappe dépasse 45 % de sa capacité, puis irrigue les cultures proches. L'eau pompée part avec une charge de 20 mg/L (indice), qui se concentre quand l'eau s'évapore ; on compte aussi les jours où l'eau, stockée depuis plus de 20 jours, reste au chaud.
+11. **Atmosphère**, en cycle fermé : elle reçoit l'évaporation de la mer et la moitié de celle des terres ; il pleut quand elle atteint 30 mm.
 
 ### Paramètres par occupation du sol
 
@@ -148,13 +152,14 @@ Le jeu a été construit par étapes, à partir de demandes successives.
 8. **Tous les outils partout, et la récolte.** Chaque mission donne accès à tous les aménagements. Pour garder le sens de chaque mission, deux objectifs ont été ajoutés là où un raccourci devenait possible : la mission 1 demande aussi de faire entrer plus de pluie dans le sol (sinon une simple digue suffisait), la mission 8 interdit les pompes (elle porte sur la pluie, pas sur l'irrigation). Une récolte calculée rend visible l'effet des haies et des inondations sur l'agriculture : une haie prend un peu de surface au champ mais abrite ses voisins, si bien que quelques haies bien réparties augmentent la récolte et qu'une plaine couverte de haies la réduit. La mission 2 demande d'en garder 95 %.
 9. **Tutoriel.** Un tutoriel intégré présente les notions de base avec des schémas, puis fait la visite guidée de l'écran.
 10. **Barrages orientés.** La première « digue » rehaussait les cases une à une : on ne voyait pas dans quel sens l'eau arrivait et la crête n'était pas de niveau. Elle est remplacée par un outil Barrage posé d'un clic, qui calcule lui-même la direction de la pente, barre la vallée d'un versant à l'autre et affiche avant la pose la zone qui sera noyée. Le rehaussement case par case reste disponible sous le nom de Remblai, pour les levées le long d'une rive.
-11. **Barrage écrêteur et solutions.** Ajout d'un barrage écrêteur, dont le pertuis laisse passer le débit normal : en mission 9, il évapore une quinzaine de fois moins d'eau qu'un barrage plein et garde un meilleur débit d'été, mais il doit être plus haut pour arrêter la même crue. Chaque mission a désormais un bouton « Solution » avec une stratégie expliquée, applicable d'un clic. Les neuf solutions ont été vérifiées par calcul puis jouées dans un navigateur de test : toutes réussissent leur mission dans le budget.
+11. **Barrage écrêteur et solutions.** Ajout d'un barrage écrêteur, dont le pertuis laisse passer le débit normal : en mission 10, il évapore une quinzaine de fois moins d'eau qu'un barrage plein et garde un meilleur débit d'été, mais il doit être plus haut pour arrêter la même crue. Chaque mission a désormais un bouton « Solution » avec une stratégie expliquée, applicable d'un clic. Les neuf solutions ont été vérifiées par calcul puis jouées dans un navigateur de test : toutes réussissent leur mission dans le budget.
+12. **La grande réserve.** Nouvelle mission sur les retenues de substitution : pomper la nappe en hiver pour remplir une grande réserve bâchée, puis irriguer en été. Les objectifs reprennent les buts affichés de ces projets (cultures irriguées, débit d'été préservé) ; le bilan de fin de mission chiffre ce qu'ils coûtent (eau pompée, évaporation, qualité, débit d'hiver). À cette occasion, l'irrigation par pompes et réserves a été plafonnée à la capacité du sol : arroser au-delà rechargeait artificiellement la nappe et faussait la comparaison.
 
 ### Comment les missions ont été vérifiées
 
 - **Par calcul, hors écran.** Pour chaque mission, le moteur a été lancé sur la référence et sur plusieurs stratégies (une soixantaine au total). Les seuils ont été réglés pour que ne rien faire échoue, qu'au moins une stratégie raisonnable réussisse, et que des stratégies naïves échouent.
-- **À la souris, dans un navigateur de test.** Missions 1, 2, 4, 5, 7 et 8 jouées du début au verdict. Réussite obtenue sur les missions 2, 4 et 5 ; échecs attendus sur les missions 1 et 7 (aménagement volontairement insuffisant) ; échec sur la mission 8 parce que l'essai automatisé recouvrait des cultures.
-- **Non fait.** Les missions 3, 6 et 9 n'ont pas été jouées à la souris. Aucun joueur réel n'a encore testé le jeu : la difficulté et la clarté des consignes restent à éprouver.
+- **Dans un navigateur de test.** Les solutions des dix missions ont été appliquées puis jouées jusqu'au verdict : toutes réussissent. Plusieurs stratégies qui doivent échouer ont aussi été jouées à la souris (trop peu de forêt en mission 1, une seule pompe en mission 7).
+- **Non fait.** Aucun joueur réel n'a encore testé le jeu : la difficulté et la clarté des consignes restent à éprouver.
 
 Exemples de résultats obtenus par calcul :
 
@@ -165,6 +170,9 @@ Exemples de résultats obtenus par calcul :
 | 2 | Haies sur deux cases de chaque côté de la rivière | Pic de 121 à 71 m³/s, crue retardée de plus de 2 h : réussi |
 | 2 | Méandres dans la rivière devant la ville seulement | Ville inondée sur 6 cases au lieu de 3 : échec |
 | 4 | Barrage de 4 m juste en amont de la ville (65 crédits) | Pic de 136 à 104 m³/s, ville au sec : réussi |
+| 9 | 8 pompes d'été dans la nappe | Manque d'eau −51 %, mais débit d'été −40 % : échec |
+| 9 | Quatre réserves de 25 ha réparties dans la plaine | Manque d'eau −77 %, débit d'été −5 %, débit d'hiver −24 %, 5 à 6 % de l'eau évaporée : réussi |
+| 9 | Une seule réserve de 100 ha | N'arrose qu'à 6 cases autour : les deux tiers de l'eau restent inutilisés |
 | 4 | Remblai le long de la ville | Pic à 125 m³/s, ville encore inondée : échec |
 | 5 | Zone humide sur une case de chaque côté de la rivière | Pollution en mer de 99 à 35 tonnes : réussi |
 | 5 | 85 cases de prairie au milieu de la plaine | Pollution en mer de 99 à 89 tonnes : échec |
@@ -181,6 +189,7 @@ Ce que le jeu simplifie au point de pouvoir induire en erreur :
 - **La pollution** est un indice sans unité réelle : les « mg/L » et les tonnes sont des valeurs de jeu. Les nitrates qui descendent vers la nappe ne sont pas simulés.
 - **Le recyclage de la pluie** est grossi. La moitié de l'évaporation des terres retombe sur place, ce qui est plausible pour une grande région, pas pour un bassin de 11 km.
 - **La pluie** tombe partout pareil.
+- **La réserve** est simplifiée. Les saisons sont raccourcies : en réalité l'eau attend plusieurs mois entre remplissage et usage, et l'évaporation cumulée peut être plus forte que les 5 à 6 % du jeu. La charge de la nappe est fixée à 20 (indice) ; les algues ne sont pas simulées, seulement signalées par le nombre de jours d'eau stagnante au chaud ; les effets d'un débit d'hiver réduit sur les milieux (zones humides, poissons) ne sont pas calculés. Le jeu donne des ordres de grandeur sur un cas fictif, pas un avis sur des projets réels, dont l'évaluation fait l'objet de débats.
 
 Ce que le jeu ne montre pas du tout : l'eau potable et les rejets de la ville, l'érosion et l'envasement, l'interception de la pluie par le feuillage, la neige, les milieux vivants que protège le débit minimal, les sécheresses sur plusieurs années et le changement climatique.
 
@@ -203,5 +212,6 @@ Ce que le jeu ne montre pas du tout : l'eau potable et les rejets de la ville, l
 | `sources/build.py` | Assemble `sim.js` et `template.html` en un seul fichier |
 | `sources/test.js` | Banc de test hors écran : référence et stratégies par mission |
 | `sources/soltest.js` | Vérifie que la solution de chaque mission réussit dans le budget |
+| `sources/restest.js` | Compare pompes d'été et réserves de différentes tailles dans la mission 9 |
 
 Pour modifier le jeu : éditer `sim.js` (modèle, missions, seuils) ou `template.html` (interface), lancer `node test.js` pour vérifier que les missions restent gagnables (`node test.js m1` pour une seule), puis `python3 build.py` pour régénérer le fichier du jeu. Il faut Node.js et Python 3 ; aucune autre dépendance.
