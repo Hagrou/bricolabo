@@ -21,8 +21,13 @@ const h=new Float32Array(N), W=new Float32Array(N), S=new Float32Array(N), G=new
       cov=new Uint8Array(N), sea=new Uint8Array(N), pump=new Uint8Array(N), fr=new Uint8Array(N), rough=new Float32Array(N), dist=new Float32Array(N), side=new Int8Array(N);
 let pumps=[], oris=[];
 // réserve (retenue de substitution) : bassin bâché, isolé du sol, rempli en hiver en pompant la nappe, vidé en été pour irriguer
+// sol vivant (couverts, matière organique) sur les cultures : +8 mm/h d'infiltration, +20 mm de réserve ; haie voisine : -10 % d'évaporation du champ
+const soilv=new Uint8Array(N), windF=new Float32Array(N).fill(1); let windDirty=true;
+const capOf=i=>C[cov[i]].cap+(soilv[i]&&cov[i]===2?20:0), infOf=i=>C[cov[i]].inf+(soilv[i]&&cov[i]===2?8:0);
+function updWind(){for(let i=0;i<N;i++)windF[i]=cov[i]===2&&hedgeNb(i)>0?0.9:1;windDirty=false}
+function setSoil(i,on){soilv[i]=on?1:0}
 const res=new Uint8Array(N); let resTiles=[], resServe=[], resSrc=[];
-const RES_D=5000, RES_FILL=2, RES_R=6, RES_SEUIL=0.45, CN=20;   // 5 m d'eau par case pleine · remplissage max 2 mm/pas et par case · rayon d'irrigation 6 cases · seuil de nappe 45 % · nappe à 20 mg/L (indice)
+const RES_D=5000, RES_FILL=2, RES_R=6, RES_SEUIL=0.5, CN=20;   // 5 m d'eau par case pleine · remplissage max 2 mm/pas et par case · rayon d'irrigation 6 cases · seuil de nappe 45 % · nappe à 20 mg/L (indice)
 function rebuildRes(){resTiles=[];resServe=[];resSrc=[];const src=new Uint8Array(N),srv=new Uint8Array(N);
   for(let i=0;i<N;i++)if(res[i])resTiles.push(i);
   for(const i of resTiles){const x=i%GW,y=i/GW|0;
@@ -30,10 +35,13 @@ function rebuildRes(){resTiles=[];resServe=[];resSrc=[];const src=new Uint8Array
       if(Math.abs(dx)<=1&&Math.abs(dy)<=1&&!sea[j])src[j]=1;if(!res[j])srv[j]=1}}
   for(let i=0;i<N;i++){if(src[i])resSrc.push(i);if(srv[i])resServe.push(i)}}
 function setRes(i,on){res[i]=on?1:0;rebuildRes()}
+const inWin=(ws,t)=>{for(const w of ws)if(t>=w[0]*144&&t<w[1]*144)return true;return false};
+const fillWins=sc=>sc.fill||[[0,sc.fillUntil||0]], lowWins=sc=>sc.low||[[sc.lowFrom,1e9]];
+function gAvg(){let g=0;for(let i=0;i<N;i++)if(!sea[i])g+=G[i];return g/st.nLand/GMAX}
 const QORI=30*600/(DX*DX/1000);   // pertuis d'un barrage écrêteur : 30 m³/s quand la retenue est pleine
 const st={t:0,rain:{left:0,int:0},etpDay:3,meteo:"temp",script:null,nLand:1,axis:[],noise:null,
   A:20,loop:false,cumSea:0,cap:0,cumP:0,cumE:0,cumQ:0,qAcc:0,qNow:0,lastPeak:0,prevPeak:0,hist:[],m:null};
-function resetMetrics(){st.m={algae:0,qWin:0,nWin:0,resIn:0,resEvap:0,resOut:0,resRain:0,resCmax:CN,infl:0,polOut:0,cMax:0,cHours:0,cNow:0,rains:0,rain:0,peakT:0,peak:0,minQ:1e9,floodMax:0,floodH:0,stress:0,evapOpen:0,pumpG:0,pumpW:0,floodNow:0,dryNow:0}}
+function resetMetrics(){st.m={lowW:[],fillSteps:0,fillOk:0,gEnd:0,algae:0,qWin:0,nWin:0,resIn:0,resEvap:0,resOut:0,resRain:0,resCmax:CN,rechW:0,Gfill:null,infl:0,polOut:0,cMax:0,cHours:0,cNow:0,rains:0,rain:0,peakT:0,peak:0,minQ:1e9,floodMax:0,floodH:0,stress:0,evapOpen:0,pumpG:0,pumpW:0,floodNow:0,dryNow:0}}
 resetMetrics();
 function rng(seed){let s=seed>>>0;return()=>{s=(s+0x6D2B79F5)>>>0;let r=Math.imul(s^s>>>15,1|s);r=(r+Math.imul(r^r>>>7,61|r))^r;return((r^r>>>14)>>>0)/4294967296}}
 function each(fn){for(let y=0;y<GH-2;y++)for(let x=0;x<GW;x++)fn(y*GW+x,x,y,dist[y*GW+x])}
@@ -57,7 +65,7 @@ function generate(seed,setup){
     let z=1+(GH-3-y)/(GH-3)*14+cs+((n1(x,y)-.5)*12+(n2(x,y)-.5)*3)*nz;
     h[i]=Math.max(0.5,z);
   }
-  pumps=[]; res.fill(0); rebuildRes();
+  pumps=[]; res.fill(0); soilv.fill(0); rebuildRes();
   // comblement des cuvettes pour que les rivières atteignent la mer
   const F=new Float32Array(N);for(let i=0;i<N;i++)F[i]=sea[i]?h[i]:1e9;
   for(let ch=true,it=0;ch&&it<400;it++){ch=false;
@@ -84,7 +92,7 @@ function resetRun(){st.res={V:0,M:0,age:0};st.A=20;st.cumSea=0;st.t=0;st.rain={l
 function startRain(int,hours){ if(st.lastPeak>0)st.prevPeak=st.lastPeak; st.lastPeak=0; st.rain={left:Math.round(hours*6),int:int}; }
 function setPump(i,on){pump[i]=on?1:0;pumps=[];for(let k=0;k<N;k++)if(pump[k])pumps.push(k)}
 function snapshot(){return{W:W.slice(),S:S.slice(),G:G.slice(),L:L.slice()}}
-function restore(s){W.set(s.W);S.set(s.S);G.set(s.G);L.set(s.L);for(let i=0;i<N;i++){const c=C[cov[i]].cap;if(S[i]>c)S[i]=c}}
+function restore(s){W.set(s.W);S.set(s.S);G.set(s.G);L.set(s.L);windDirty=true;for(let i=0;i<N;i++){const c=capOf(i);if(S[i]>c)S[i]=c}}
 const lst=[];
 
 function step(){
@@ -96,27 +104,27 @@ function step(){
     else if(mt==="sec"&&r<1/2600){Math.random()<.5?startRain(8,3):startRain(40,1.5)}
     else if(mt==="orage"&&r<1/420){Math.random()<.7?startRain(30+Math.random()*25,2):startRain(8,4)}}
   const rain=st.rain, rs=rain.left>0?rain.int*DT:0; if(rain.left>0)rain.left--;
-  const etp=st.etpDay/144, wetF=rs>0?0.2:1;
-  let cE=0;
+  const etp=st.etpDay/144, wetF=rs>0?0.2:1; if(windDirty||st.t%144===0)updWind();
+  let cE=0; const inF=sc?inWin(fillWins(sc),st.t):false;
   for(let i=0;i<N;i++){ if(sea[i])continue; if(res[i]){W[i]=0;L[i]=0;continue}
-    const c=C[cov[i]],cap=c.cap; let w=W[i]+rs, s=S[i]; rough[i]=nOf(i);
-    const inf=Math.min(w,c.inf*DT*(1-0.8*s/cap),cap-s); let l=L[i];
+    const c=C[cov[i]],cap=capOf(i); let w=W[i]+rs, s=S[i]; rough[i]=nOf(i);
+    const inf=Math.min(w,infOf(i)*DT*(1-0.8*s/cap),cap-s); let l=L[i];
     if(inf>0){l*=1-inf/w;w-=inf;s+=inf;m.infl+=inf}                                  // ce qui s'infiltre est filtré par le sol
     if(rs>inf)l+=SRC[cov[i]]*(rs-(inf>0?inf:0));                          // le ruissellement produit ici se charge
     if(l>0){const tr=(dist[i]>0?TRAP[cov[i]]:0)+(fr[i]===1?(dist[i]===0?0.02:0.04):0);L[i]=l*(1-tr)}else L[i]=0;
     const fc=cap*0.5;
-    if(s>fc){ if(G[i]<GMAX){const p=Math.min((s-fc)*0.008,GMAX-G[i]);s-=p;G[i]+=p} }
+    if(s>fc){ if(G[i]<GMAX){const p=Math.min((s-fc)*0.008,GMAX-G[i]);s-=p;G[i]+=p;if(inF)m.rechW+=p} }
     else if(G[i]>0.97*GMAX){const p=Math.min(0.05,fc-s);s+=p;G[i]-=p}   // remontée capillaire
     const e1=Math.min(w,etp); w-=e1; if(w>100)m.evapOpen+=e1;
-    const e2=Math.min(s,etp*c.kc*Math.min(1,s/(0.4*cap))*wetF); s-=e2; cE+=e1+e2;
+    const e2=Math.min(s,etp*c.kc*windF[i]*Math.min(1,s/(0.4*cap))*wetF); s-=e2; cE+=e1+e2;
     W[i]=w;S[i]=s; }
   // la réserve : pluie directe, évaporation, remplissage d'hiver par la nappe, irrigation d'été
-  if(resTiles.length){const R=st.res,nR=resTiles.length,cap=nR*RES_D,fill=sc?st.t<(sc.fillUntil||0)*144:st.etpDay<=2;
+  if(resTiles.length){const R=st.res,nR=resTiles.length,cap=nR*RES_D,fill=sc?inWin(fillWins(sc),st.t):st.etpDay<=2;
     const v0=R.V; R.V+=rs*nR; m.resRain+=rs*nR;
     if(R.V>0){const e=Math.min(R.V,etp*1.1*nR);R.V-=e;cE+=e;m.resEvap+=e}
-    if(fill&&R.V<cap&&resSrc.length){let avg=0;for(const c of resSrc)avg+=G[c];avg/=resSrc.length;
-      if(avg>RES_SEUIL*GMAX){const per=Math.min(RES_FILL*nR,cap-R.V)/resSrc.length;let got=0;
-        for(const c of resSrc){const q=Math.min(per,Math.max(0,G[c]-RES_SEUIL*GMAX));G[c]-=q;got+=q}R.V+=got;R.M+=got*CN;m.resIn+=got}}
+    if(fill&&R.V<cap&&resSrc.length){m.fillSteps++;
+      if(gAvg()>RES_SEUIL){m.fillOk++;const per=Math.min(RES_FILL*nR,cap-R.V)/resSrc.length;let got=0;   // piézomètre de référence : la nappe moyenne doit dépasser le seuil
+        for(const c of resSrc){const q=Math.min(per,Math.max(0,G[c]-0.15*GMAX));G[c]-=q;got+=q}R.V+=got;R.M+=got*CN;m.resIn+=got}}
     if(!fill&&R.V>0){const tgt=C[2].cap*0.48;let need=0;lst.length=0;
       for(const j of resServe)if(cov[j]===2&&S[j]<tgt){const nd=Math.min(tgt-S[j],0.2);need+=nd;lst.push(j,nd)}
       if(need>0){const take=Math.min(need,R.V),r=take/need,cc=R.M/R.V;R.V-=take;R.M-=take*cc;m.resOut+=take;for(let k=0;k<lst.length;k+=2)S[lst[k]]+=lst[k+1]*r}}
@@ -137,12 +145,13 @@ function step(){
     W[p]-=tw;G[p]-=tg;m.pumpW+=tw;m.pumpG+=tg;
     for(let k=0;k<lst.length;k+=2)S[lst[k]]+=lst[k+1]*r; }
   // nappe : écoulement latéral lent, de la nappe haute vers la nappe basse
+  const kg=sc&&sc.kg?sc.kg:KG;
   dG.fill(0);
   for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const a=y*GW+x;
     for(let k=0;k<2;k++){ if(k===0&&x===GW-1)continue; if(k===1&&y===GH-1)continue;
       const b=k===0?a+1:a+GW; if(sea[a]&&sea[b])continue;
       const za=sea[a]?0:h[a]-DAQ*(1-G[a]/GMAX), zb=sea[b]?0:h[b]-DAQ*(1-G[b]/GMAX);
-      let q=KG*(za-zb);
+      let q=kg*(za-zb);
       if(q>0){ if(sea[a])continue; q=Math.min(q,G[a]*0.2); dG[a]-=q; if(sea[b])st.cumQ+=q; else dG[b]+=q; }
       else if(q<0){ if(sea[b])continue; q=Math.min(-q,G[b]*0.2); dG[b]-=q; if(sea[a])st.cumQ+=q; else dG[a]+=q; } } }
   // le lit, entaillé dans le terrain, draine la nappe dès qu'elle monte assez haut
@@ -177,11 +186,13 @@ function step(){
     if(cov[i]===4){if(W[i]>FLOOD)fl++}else if(cov[i]===2){if(S[i]<dryT){dr++;cropDry[i]++}if(W[i]>FLOOD)cropFl[i]++}}
   m.floodNow=fl;m.dryNow=dr;if(fl>m.floodMax)m.floodMax=fl;m.floodH+=fl*DT;m.stress+=dr/144;
   st.cumQ+=qs; st.qAcc+=qs; st.t++;
+  if(sc&&st.t===fillWins(sc)[0][1]*144)m.Gfill=G.slice();   // nappe à la fin du premier remplissage, pour mesurer le rabattement
   if(st.t%3===0){ const q=st.qNow=st.qAcc/3*QK; st.qAcc=0; if(q>st.lastPeak)st.lastPeak=q; if(q>m.peak){m.peak=q;m.peakT=st.t}
-    if(sc&&st.t>=sc.lowFrom*144&&q<m.minQ)m.minQ=q;
-    if(sc&&sc.fillUntil&&st.t>=4*144&&st.t<sc.fillUntil*144){m.qWin+=q;m.nWin++}
+    if(sc&&inWin(lowWins(sc),st.t)&&q<m.minQ)m.minQ=q;
+    if(sc&&sc.low)sc.low.forEach((w,k)=>{if(st.t>=w[0]*144&&st.t<w[1]*144&&!(m.lowW[k]<=q))m.lowW[k]=q});
+    if(sc&&(sc.fill||sc.fillUntil)&&st.t>=4*144&&inWin(fillWins(sc),st.t)){m.qWin+=q;m.nWin++}
     const cw=W[st.cap],c=cw>3?L[st.cap]/cw:0; m.cNow=c; if(c>m.cMax)m.cMax=c; if(c>SEUIL)m.cHours+=0.5; m.rain=st.cumP/st.nLand; m.et=st.cumE/st.nLand;
-    st.hist.push({q:q,r:rs/DT,c:c}); if(!sc&&st.hist.length>432)st.hist.shift(); }
+    st.hist.push({q:q,r:rs/DT,c:c,g:gAvg(),o:st.cumQ}); if(!sc&&st.hist.length>432)st.hist.shift(); }
 }
 // instant où la moitié du volume de la crue (au-dessus du débit de départ) est passée, en pas de temps
 function half(){const H=st.hist;if(!H.length)return 0;const q0=H[0].q;let tot=0,a=0;for(const p of H)tot+=Math.max(0,p.q-q0);
@@ -214,8 +225,10 @@ function setOrifices(l){oris=l}
 // construit un barrage sur le seul moteur (banc de test, solutions) ; l'interface a sa propre version qui garde la trace des barrages
 function buildDam(i,H,ecr){const p=damPlan(i,H);if(!p||!p.ok)return null;const o=ecr?orificeFor(p,i):null;
   for(const j of p.line)h[j]=Math.max(h[j],p.crest);if(o)oris.push(o);return p}
-function runAll(){while(st.t<st.script.days*144)step();st.m.t50=half();st.m.harvest=harvest()}
-const api={COST_RES,res,setRes,RES_D,RES_R,RES_SEUIL,CN,QORI,orificeFor,setOrifices,buildDam,damPlan,hedgeNb,harvest,cropFl,cropDry,L,SRC,TRAP,SEUIL,ATH,SEAK,REC,half,fr,nOf,COST_SLOW,COST_UNFAST,NRIV,dist,side,GW,GH,N,DT,GMAX,DAQ,DX,FLOOD,C,COST_UP,COST_DOWN,COST_PUMP,h,W,S,G,V,cov,sea,pump,st,each,inTown,generate,resetRun,startRain,setPump,snapshot,restore,step,runAll};
+// rabattement de la nappe (en m) entre une référence et un essai, hors réserves : moyenne sur le territoire et maximum local
+function cone(gb,ga){if(!gb||!ga)return null;let s=0,n=0,mx=0;for(let i=0;i<N;i++){if(sea[i]||res[i])continue;const d=(gb[i]-ga[i])/GMAX*DAQ;s+=d;n++;if(d>mx)mx=d}return{avg:s/n,max:mx}}
+function runAll(){while(st.t<st.script.days*144)step();st.m.gEnd=gAvg();st.m.t50=half();st.m.harvest=harvest()}
+const api={cone,soilv,setSoil,capOf,gAvg,inWin,fillWins,COST_RES,res,setRes,RES_D,RES_R,RES_SEUIL,CN,QORI,orificeFor,setOrifices,buildDam,damPlan,hedgeNb,harvest,cropFl,cropDry,L,SRC,TRAP,SEUIL,ATH,SEAK,REC,half,fr,nOf,COST_SLOW,COST_UNFAST,NRIV,dist,side,GW,GH,N,DT,GMAX,DAQ,DX,FLOOD,C,COST_UP,COST_DOWN,COST_PUMP,h,W,S,G,V,cov,sea,pump,st,each,inTown,generate,resetRun,startRain,setPump,snapshot,restore,step,runAll};
 return api;
 })();
 
@@ -237,6 +250,11 @@ const oEt=(k)=>({txt:"Renvoyer vers le ciel au moins "+pct(k)+" % d'eau en plus"
 const oHarvest=(k)=>({txt:"Garder au moins "+pct(k)+" % de la récolte",ok:(m,b)=>m.harvest>=b.harvest*k,cur:(m,b)=>(m.harvest==null?"…":Math.round(m.harvest/b.harvest*100)+" % de la récolte de référence")});
 const oInf=(k)=>({txt:"Faire entrer dans le sol au moins "+pct(k)+" % de pluie en plus",ok:(m,b)=>m.infl>=b.infl*(1+k),cur:(m,b)=>Math.round(m.infl/Sim.st.nLand)+" mm infiltrés · référence "+Math.round(b.infl/Sim.st.nLand)});
 const oNoPump=()=>({txt:"Ne pas irriguer : aucune pompe",live:true,ok:(m,b,x)=>x.pumps===0,cur:(m,b,x)=>x.pumps+" pompe"+(x.pumps>1?"s":"")});
+const oLowEach=(k)=>({txt:"Garder chaque été au moins "+pct(k)+" du débit d'été de référence".replace(" du"," % du"),ok:(m,b)=>b.lowW.every((v,j)=>m.lowW[j]!=null&&m.lowW[j]>=v*k),cur:(m,b)=>{const r=b.lowW.map((v,j)=>m.lowW[j]!=null?Math.round(m.lowW[j]/v*100)+" %":"…");return "été par été : "+r.join(" · ")}});
+const oNappe=()=>({txt:"Finir avec une nappe au moins aussi haute que sans aménagement",ok:(m,b)=>m.gEnd>=b.gEnd-0.002,cur:(m,b)=>(m.gEnd?Math.round(m.gEnd*100)+" %":"…")+" de remplissage · référence "+Math.round(b.gEnd*100)+" %"});
+const f2=v=>v.toFixed(2).replace(".",",");
+const oWinter=(k)=>({txt:"Garder au moins "+pct(k)+" % du débit d'hiver de la rivière",ok:(m,b)=>m.nWin>0&&m.qWin/m.nWin>=b.qWin/b.nWin*k,cur:(m,b)=>"débit moyen d'hiver "+(m.nWin?f2(m.qWin/m.nWin):"…")+" m³/s · référence "+f2(b.qWin/Math.max(1,b.nWin))});
+const oCone=(k)=>({txt:"Ne pas faire baisser la nappe de plus de "+String(k).replace(".",",")+" m près des forages à la fin de l'hiver",ok:(m,b)=>{const c=Sim.cone(b.Gfill,m.Gfill);return !!c&&c.max<=k},cur:(m,b)=>{const c=Sim.cone(b.Gfill,m.Gfill);return (c?"jusqu'à "+f2(c.max)+" m plus basse, "+f2(c.avg)+" m en moyenne":"…")+" · référence 0 m"}});
 const oCrops=(k)=>({txt:"Garder au moins "+pct(k)+" % des surfaces cultivées",live:true,ok:(m,b,x)=>x.crops>=x.crops0*k,cur:(m,b,x)=>x.crops+" cases sur "+x.crops0});
 const oTown=(n)=>({txt:"Construire "+n+" nouvelles cases de ville",live:true,ok:(m,b,x)=>x.newTown>=n,cur:(m,b,x)=>x.newTown+" / "+n});
 
@@ -244,6 +262,7 @@ const oTown=(n)=>({txt:"Construire "+n+" nouvelles cases de ville",live:true,ok:
 function solOps(dam){const S=Sim;return{
   cover:(n,f,c,srt)=>{const o=[];S.each((i,x,y,d)=>{if(S.cov[i]!==4&&f(i,x,y,d))o.push(i)});if(srt)o.sort(srt);o.slice(0,n).forEach(i=>S.cov[i]=c)},
   slow:f=>S.each((i,x,y,d)=>{if(S.cov[i]!==4&&f(i,x,y,d))S.fr[i]=1}),
+  soil:(n,f)=>{let k=0;S.each((i,x,y,d)=>{if(k<n&&S.cov[i]===2&&f(i,x,y,d)){S.setSoil(i,1);k++}})},
   pumps:(ys,ds)=>{for(const y of ys)for(const dd of ds){const x=S.st.axis[y]+dd;if(x>=0&&x<S.GW)S.setPump(y*S.GW+x,1)}},
   dam:(y,H,ecr)=>dam(y*S.GW+S.st.axis[y],H,ecr),
   res:(y,dx,n)=>{const x0=S.st.axis[y]+dx;for(let yy=y;yy<y+n;yy++)for(let xx=x0;xx<x0+n;xx++)S.setRes(yy*S.GW+xx,1)},
@@ -251,7 +270,7 @@ function solOps(dam){const S=Sim;return{
 const MISSIONS=[
 { id:"m1", name:"Premier orage", theme:"Ruissellement et infiltration",
   brief:"Les versants ont été mis à nu. À chaque orage, l'eau dévale les pentes sans s'infiltrer et gonfle la rivière en quelques heures. Replantez pour que la pluie entre dans le sol au lieu de ruisseler.",
-  hint:"Sondez un versant pendant l'orage : sur sol nu, l'eau file à plusieurs dizaines de cm/s. Regardez aussi la vue « Humidité du sol ».",
+  hint:"Sondez un versant pendant l'orage : sur sol nu, l'eau file à plusieurs dizaines de cm/s. La vue « Place pour la pluie » montre où l'orage ruissellera.",
   learn:"Une même pluie ne fait pas la même crue. Ce qui décide, c'est le partage au sol entre infiltration et ruissellement : un sol couvert absorbe et freine, un sol nu ou tassé évacue tout, tout de suite.",
   tools:["c0","c1"], budget:700, speed:1, meteo:"3 jours · un orage de 80 mm en 2 heures",
   setup:s=>s.each((i,x,y,d)=>{if(s.h[i]>13&&s.cov[i]!==4)s.cov[i]=3}),
@@ -314,15 +333,26 @@ const MISSIONS=[
   script:{days:45,loop:true,rain:[],etp:[[0,5]],lowFrom:0}, sol:{txt:"Semez de la prairie sur 450 cases de sol nu : 450 crédits, sans toucher aux cultures ni installer de pompe. Un sol nu sec n'évapore presque rien ; couvert de végétation, il renvoie de l'eau vers le ciel tant qu'il en a. L'atmosphère se remplit plus vite, les pluies reviennent plus tôt et les cultures souffrent beaucoup moins. Le nombre de pluies change peu : c'est leur rythme qui compte.",apply:o=>o.cover(450,(i)=>Sim.cov[i]===3,1)},
   obj:[oEt(0.12),oStress(0.4),oCrops(0.9),oNoPump()] },
 { id:"mb", name:"La grande réserve", theme:"Retenues de substitution",
-  brief:"La plaine manque d'eau chaque été. Une idée est débattue : pomper la nappe en hiver, quand elle est haute, pour remplir une grande réserve bâchée, puis irriguer en été avec cette eau plutôt que de pomper la nappe au moment où la rivière est la plus basse. Comparez cette solution à d'autres : pompes d'été, infiltration, sobriété. Regardez aussi ce que devient l'eau stockée à l'air libre.",
-  hint:"Une réserve irrigue les cultures à 6 cases à la ronde et ne se remplit que tant que la nappe autour d'elle dépasse un seuil. Suivez son bilan dans « État du territoire » : ce qui est entré, ce qui s'est évaporé, ce qui a servi.",
-  learn:"Stocker l'eau d'hiver déplace le prélèvement dans le temps : on puise quand la nappe est haute plutôt qu'au moment où la rivière est au plus bas. Mais l'eau pompée en hiver manque aussi à la nappe et à la rivière d'hiver, une partie s'évapore à l'air libre, et l'eau stagnante se concentre et se réchauffe, ce qui favorise les algues. Le bilan dépend de la taille de la réserve, du seuil de remplissage, de la météo et de ce qu'on compare : le jeu donne des ordres de grandeur, pas un verdict sur les projets réels.",
-  tools:[], budget:340, speed:16, sqrt:true, meteo:"70 jours · 25 jours d'hiver pluvieux (remplissage autorisé), 15 jours de printemps, puis 30 jours secs et chauds",
+  brief:"La plaine manque d'eau chaque été. Un projet est débattu : des « méga-bassines », remplies en hiver par des forages dans la nappe, pour irriguer l'été sans pomper au moment où la rivière est au plus bas. Ici, une case de réserve vaut une bassine réelle de taille moyenne, environ 310 000 m³ ; celle de Sainte-Soline en vaut deux. Chaque mètre cube stocké est pris quelque part : dans la nappe, qui baisse autour des forages, ou dans la rivière d'hiver, qui coule moins. Choisissez le volume à engager et où le pomper.",
+  hint:"Sous les objectifs, « Volumes engagés » suit la capacité posée et ce qui est pompé. Une bassine loin de la rivière creuse un cône dans la nappe (vue « Nappe ») ; près de la rivière, elle prend surtout l'eau qui aurait coulé vers la mer. Plus de volume ne veut pas dire mieux : comparez avec des pompes d'été, du sol vivant ou des haies.",
+  learn:"Stocker l'eau d'hiver déplace le prélèvement dans le temps : on puise quand la nappe est haute plutôt qu'au moment où la rivière est au plus bas. Mais le volume engagé se paie : l'eau pompée en hiver manque à la nappe autour des forages et à la rivière d'hiver, une partie s'évapore à l'air libre, et l'eau stagnante se concentre et se réchauffe. Le bon volume dépend de la nappe, de la rivière et des hivers : le jeu donne des ordres de grandeur, pas un verdict sur les projets réels, dont les effets restent débattus.",
+  tools:[], budget:340, speed:16, sqrt:true, variants:true, volumes:true, meteo:"70 jours · 25 jours d'hiver pluvieux (remplissage autorisé), 15 jours de printemps, puis 30 jours secs et chauds",
   setup:s=>s.each((i,x,y,d)=>{if(s.h[i]<19&&d>=1&&s.cov[i]!==4)s.cov[i]=2}),
-  sol:{txt:"Pour tenir les trois objectifs : quatre réserves de 25 ha (2 × 2 cases), deux de chaque côté de la rivière, à 7 ou 8 cases du lit, sur les rangées 8 et 18 : 320 crédits. Réparties ainsi, elles arrosent presque toute la plaine : le manque d'eau des cultures baisse d'environ trois quarts. Comme on ne pompe plus l'été, la rivière garde 95 % de son débit d'été ; avec 8 pompes d'été à la place, elle en perd 40 %. Le prix, visible dans le bilan : environ 4,7 millions de m³ pompés dans la nappe en hiver, un débit d'hiver en baisse d'un quart, près de 300 000 m³ perdus par évaporation pendant l'attente et l'usage, soit 5 à 6 % de l'eau stockée, et une eau qui se concentre et reste stagnante au chaud tout l'été, ce qui favorise les algues. Une seule réserve de 100 ha d'un bloc coûterait autant mais n'arroserait qu'à 6 cases autour d'elle : les deux tiers de son eau resteraient inutilisés.",
-    apply:o=>{for(const y of [8,18]){o.res(y,-8,2);o.res(y,7,2)}}},
+  sol:{txt:"Dix bassines d'une case, cinq de chaque côté de la rivière, à 7 cases du lit, sur les rangées 3, 8, 13, 18 et 23 : 200 crédits pour environ 3,1 millions de m³, soit la moitié du programme des Deux-Sèvres. Réparties le long de la plaine, elles arrosent presque toutes les cultures : le manque d'eau baisse d'environ 58 %. À 7 cases du lit, le pompage se partage entre la nappe et la rivière : la nappe baisse au plus de 0,65 m près des forages (0,12 m en moyenne) et la rivière perd environ 16 % de son débit d'hiver. Le prix : environ 2,9 millions de m³ pompés en hiver, soit 8 % de ce qui a rechargé la nappe, et quelque 110 000 m³ évaporés. Seize bassines (5 millions de m³) soulageraient davantage les cultures (−77 %), mais la nappe baisserait jusqu'à 1,07 m et la rivière perdrait un quart de son débit d'hiver. Plus loin de la rivière, le cône se creuse dans la nappe ; plus près, c'est la rivière d'hiver qui paie. En hiver sec, ces dix bassines ne se remplissent qu'au tiers et le manque d'eau ne baisse plus que de 19 %.",
+    apply:o=>{for(const y of [3,8,13,18,23])for(const dx of [-7,7])o.res(y,dx,1)}},
   script:{days:70,fillUntil:25,rain:[[2,8,6],[40,10,4],[80,6,10],[130,12,4],[170,8,5],[250,8,6],[330,10,4],[420,6,8],[500,8,5],[650,6,4],[800,8,3]],etp:[[0,1],[25,3.5],[40,6]],lowFrom:58},
-  obj:[oStress(0.5),oLow(0.9),oCrops(0.9)] },
+  debate:"<p>Les réserves de substitution, ou « méga-bassines », sont au cœur d'un conflit en Poitou-Charentes. Voici ce qui fait à peu près consensus, et ce qui est contesté.</p><h4>Les volumes</h4><p><span class=\"tag ok\">repère</span> La réserve de Sainte-Soline peut stocker environ 628 000 m³ sur une dizaine d'hectares ; le programme de la Coop de l'eau 79 compte 16 réserves (<a href=\"https://fr.wikipedia.org/wiki/R%C3%A9serve_de_substitution_en_France\" target=\"_blank\" rel=\"noopener\">Wikipédia</a>).</p><p><span class=\"tag div\">divergence</span> Le volume total cité varie de 6,2 à 6,9 millions de m³ selon les sources et les versions du projet. En 2021, le tribunal administratif de Poitiers a imposé de réduire de 1,2 million de m³ les prélèvements d'hiver (<a href=\"https://www.pleinchamp.com/actualite/les-anti-bassines-s-enferrent-dans-le-deni-democratique-et-scientifique-quoi-que\" target=\"_blank\" rel=\"noopener\">Pleinchamp</a>, <a href=\"https://reporterre.net/Dans-le-marais-poitevin-la-bataille-autour-de-l-eau-se-durcit\" target=\"_blank\" rel=\"noopener\">Reporterre</a>).</p><h4>L'effet sur la nappe et les rivières</h4><p><span class=\"tag ok\">étude BRGM 2022</span> Commandée par la Coop 79 et calée sur 2000-2011 : +5 à 6 % de débit d'été à l'entrée du Marais poitevin, environ −1 % en hiver, et une nappe abaissée en hiver, souvent de plus de 50 cm (<a href=\"https://www.lafranceagricole.fr/irrigation/article/756141/les-rserves-deau-ont-un-impact-plutt-positif-selon-le-brgm\" target=\"_blank\" rel=\"noopener\">La France Agricole</a>).</p><p><span class=\"tag div\">divergence</span> Une contre-expertise réalisée pour Bassines non merci (2023) juge le modèle régional, à mailles de 1 km, inadapté à l'échelle d'une bassine. Elle estime son erreur à ±1,2 m, bien plus que les gains de quelques centimètres annoncés, et des cônes de rabattement de 500 à 900 m de rayon, jusqu'à 1,5 m de baisse (<a href=\"https://www.agra.fr/articles/bassines-des-deux-sevres-une-contre-etude-des-simulations-du-brgm\" target=\"_blank\" rel=\"noopener\">Agra</a>). Le BRGM reconnaît ne pas avoir simulé le climat futur, et que des hivers secs répétés pourraient empêcher le remplissage certaines années (<a href=\"https://www.reussir.fr/bassines-des-deux-sevres-le-brgm-repond-aux-critiques-sur-son-expertise\" target=\"_blank\" rel=\"noopener\">Réussir</a>). En Vendée, des chercheurs de l'ENS relient la remontée des nappes surtout au durcissement des seuils de prélèvement (<a href=\"https://www.geosciences.ens.fr/cinq-questions-sur-les-mega-bassines\" target=\"_blank\" rel=\"noopener\">ENS</a>).</p><h4>L'évaporation</h4><p><span class=\"tag div\">divergence</span> Les estimations vont de 4 % (étude d'impact de Sainte-Soline) à 7 % (FNSEA), et jusqu'à 20 à 60 % selon un chercheur qui s'appuie sur des études nord-américaines (<a href=\"https://france3-regions.franceinfo.fr/pays-de-la-loire/vendee/retenues-d-eau-mega-bassines-polemique-sur-le-pourcentage-d-evaporation-2868836.html\" target=\"_blank\" rel=\"noopener\">France 3</a>). L'écart vient surtout des hypothèses : durée de stockage, climat, taux de remplissage. Un billet du CNRS avance 2 à 3 L/m² par jour en été (<a href=\"https://lejournal.cnrs.fr/billets/les-megabassines-ne-resoudront-pas-la-crise-de-leau\" target=\"_blank\" rel=\"noopener\">CNRS</a>). Le jeu donne environ 5 %.</p><h4>La qualité de l'eau</h4><p><span class=\"tag div\">divergence</span> Des chercheurs pointent le réchauffement de l'eau stagnante et le risque de cyanobactéries ; peu de mesures ont été publiées sur les réserves en service.</p><h4>Adaptation ou mal-adaptation ?</h4><p><span class=\"tag div\">divergence</span> Pour les syndicats agricoles majoritaires et le gouvernement (2023), les réserves sécurisent les rendements et la souveraineté alimentaire, avec des contreparties : haies, baisse des pesticides. Pour leurs opposants et une partie des chercheurs, elles prolongent des cultures gourmandes en eau d'été, avec environ 70 % d'argent public pour une minorité d'exploitations (<a href=\"https://sfecologie.org/regard/r117-jan-2024-retenues-de-substitution-c-aubertin-et-al-aaf/\" target=\"_blank\" rel=\"noopener\">Société française d'écologie</a>, <a href=\"https://www.bassinesnonmerci.fr/\" target=\"_blank\" rel=\"noopener\">Bassines non merci</a>).</p><h4>Le droit</h4><p><span class=\"tag ok\">décision</span> Le 18 décembre 2024, la cour administrative d'appel de Bordeaux a jugé les volumes légaux, mais quatre réserves, dont Sainte-Soline, illégales faute de dérogation « espèces protégées » (<a href=\"https://bordeaux.cour-administrative-appel.fr/decisions-de-justice/dernieres-decisions/contentieux-des-bassines-dans-le-bassin-de-la-sevre-niortaise-mignon-quatre-reserves-dont-celle-de-sainte-soline-sont-illegales-en-l-absence-de\" target=\"_blank\" rel=\"noopener\">CAA de Bordeaux</a>).</p><h4>L'été 2026</h4><p><span class=\"tag div\">divergence</span> Des médias engagés contre les bassines rapportent des réserves vides dès juillet-août 2026 dans les Deux-Sèvres (<a href=\"https://bonpote.com/mega-bassines-secheresse-ete-2026/\" target=\"_blank\" rel=\"noopener\">Bon Pote</a>). Ces relevés restent à recouper.</p><h4>Ce que le jeu simplifie</h4><p>La carte ne couvre que 77 km² : dix bassines y pèsent bien plus lourd que dans un bassin réel, où elles sont réparties sur un territoire beaucoup plus vaste. La nappe y est homogène, alors que celle du Poitou est en partie karstique, très réactive et inégale d'un endroit à l'autre. Les règles de remplissage, les seuils piézométriques et les contreparties sont stylisés. Le jeu montre des mécanismes et des ordres de grandeur, pas l'impact d'un projet réel.</p>",
+  obj:[oStress(0.5),oLow(0.9),oWinter(0.8),oCone(1),oCrops(0.9)] },
+{ id:"md", name:"Les années sèches", theme:"Bon cycle de l'eau ou réserves ?",
+  brief:"Trois années de suite, de plus en plus sèches : des hivers qui pleuvent de moins en moins, des étés brûlants. La plaine cultivée a soif chaque été. Deux voies s'opposent souvent : stocker l'eau d'hiver dans des réserves, ou aider le territoire à garder son eau lui-même (sols vivants, haies, prairies, zones humides). Essayez l'une, l'autre, ou un mélange, et voyez ce qui tient sur trois ans.",
+  hint:"Une réserve ne se remplit que si la nappe moyenne dépasse 50 % pendant l'hiver : en hiver sec, elle peut rester à moitié vide. Le sol vivant (outil Sol vivant, sur les cultures) infiltre mieux et garde 20 mm d'eau de plus ; une haie réduit l'évaporation des champs voisins. Suivez la courbe de la nappe sous l'hydrogramme.",
+  learn:"Sur plusieurs années sèches, ce qui compte est ce que le territoire garde d'une année sur l'autre. Les réserves dépendent de la pluie d'hiver pour se remplir et prélèvent dans la nappe et la rivière d'hiver ; les sols vivants, les haies et les couverts gardent l'eau là où elle tombe, sans pompage, mais leur effet sur une culture assoiffée est plus limité. Les deux voies ne répondent pas aux mêmes objectifs : le jeu montre ce que chacune apporte et ce qu'elle coûte, avec des hypothèses simplifiées, pas un verdict sur les cas réels.",
+  tools:[], budget:500, speed:32, sqrt:true, meteo:"3 ans · hivers de moins en moins pluvieux (remplissage autorisé), étés très secs",
+  setup:s=>s.each((i,x,y,d)=>{if(s.cov[i]===4)return;if(s.h[i]<19&&d>=1)s.cov[i]=2;else if(s.h[i]>=19&&s.st.noise(x,y)<0.45)s.cov[i]=3}),
+  script:{days:120,kg:0.3,fill:[[0,15],[40,55],[80,95]],low:[[15,40],[55,80],[95,120]],rain:[[2,6.8,6],[60,8.5,4],[130,5.1,10],[220,10.2,4],[300,6.8,5],[620,4.2,2],[962,4.8,6],[1020,6.0,4],[1090,3.6,10],[1180,7.2,4],[1260,4.8,5],[1580,3.0,2],[1922,3.6,6],[1980,4.5,4],[2050,2.7,10],[2140,5.4,4],[2220,3.6,5],[2540,2.2,2]],etp:[[0,1],[15,6.5],[40,1],[55,6.5],[80,1],[95,6.5]],lowFrom:15},
+  sol:{txt:"Dans ce modèle, aucune voie pure ne tient les quatre objectifs. Quatre réserves soulagent fortement les cultures, surtout la première année, mais elles ne se remplissent presque plus après deux hivers secs, et le pompage d'hiver fait baisser de 20 % le débit du premier été. Sols vivants, haies et prairies préservent la rivière et la nappe mais ne réduisent le manque d'eau que de 7 à 16 % dans des étés aussi extrêmes. Ce qui passe est un mélange sobre, pour 485 crédits : 45 parcelles de cultures au bord de la rivière rendues à la prairie, une seule réserve de 25 ha, du sol vivant sur 300 parcelles et 30 haies. Le manque d'eau baisse d'environ 30 %, chaque été garde au moins 95 % de son débit, la nappe finit au niveau de la référence. Ces chiffres reposent sur des hypothèses simplifiées, notamment l'effet du sol vivant (+20 mm), à prendre comme un ordre de grandeur.",
+    apply:o=>{o.cover(45,(i,x,y,d)=>Sim.cov[i]===2&&d<=2,1);o.res(14,7,2);o.soil(300,()=>true);let n=0;o.slow((i,x,y,d)=>Sim.cov[i]===2&&y%3===0&&n++<30)}},
+  obj:[oStress(0.25),oLowEach(0.9),oNappe(),oCrops(0.9)] },
 { id:"m6", name:"Un territoire, quatre saisons", theme:"Tout concilier",
   brief:"Une année entière en accéléré : pluies d'hiver avec un gros orage sur sol saturé, puis un été sec. Protégez la ville, gardez les cultures en vie et la rivière en eau, avec un budget qui ne permet pas tout.",
   hint:"Chaque aménagement a deux faces : la forêt absorbe la crue mais boit en été, la retenue protège et irrigue mais s'évapore, la pompe sauve la récolte mais prend à la rivière.",

@@ -31,18 +31,71 @@
 #tuto.docked{align-items:flex-end;justify-content:flex-end;pointer-events:none}
 #tuto.docked .tuto-back{display:none}
 #tuto.docked .tuto-card{pointer-events:auto;max-width:420px}
+#toolmsg{margin:-4px 0 0;padding:6px 10px;border-left:3px solid var(--bistre);background:var(--panel);font-size:13px;max-width:72ch}
+.tuto-off{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.modal{position:fixed;inset:0;z-index:62;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal .tuto-back{position:absolute;inset:0;background:rgba(8,16,18,.55)}
+.modal-card{position:relative;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;max-width:760px;width:100%;max-height:calc(100% - 8px);overflow:auto;padding:20px 22px;box-shadow:0 18px 50px rgba(0,0,0,.3);display:flex;flex-direction:column;gap:10px}
+.modal-card>*{flex-shrink:0}
+.modal-card a{color:var(--water);text-underline-offset:2px}
+.modal-card a:focus-visible{outline:2px solid var(--water);outline-offset:2px}
+.modal-card h2{font:700 24px/1.15 var(--display);margin:0;text-wrap:balance}
+.modal-card h3{font:700 16px var(--display);margin:10px 0 0}
+.modal-card p,.modal-card li{max-width:72ch;margin:0}
+.modal-card ul,.modal-card ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px}
+.modal-card .tbl{overflow-x:auto;border:1px solid var(--line);border-radius:4px}
+.modal-card table{border-collapse:collapse;width:100%;min-width:560px;font-size:13px}
+.modal-card th,.modal-card td{text-align:left;vertical-align:top;padding:7px 10px;border-bottom:1px solid var(--line)}
+.modal-card th{font:600 12px var(--body);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;background:var(--bg)}
+.modal-card tr:last-child td{border-bottom:none}
+.modal-card td:first-child{font-weight:600;white-space:nowrap}
+.modal-foot{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:6px}
+.note{border-left:3px solid var(--bistre);padding:4px 0 4px 12px}
+#finDrops{position:absolute;inset:0;width:100%;height:150px;pointer-events:none}
+#fin .modal-card{overflow:hidden auto}
+#fin .big{font:700 30px/1.1 var(--display);color:var(--water);margin-top:70px}
 .tuto-hl{position:relative;z-index:55;outline:3px solid var(--water);outline-offset:4px;box-shadow:0 0 0 9999px rgba(8,16,18,.45);border-radius:4px}
 @media (prefers-reduced-motion:no-preference){#tuto .tuto-card{animation:tin .25s ease-out}@keyframes tin{from{opacity:0;transform:translateY(8px)}}}
 body{background:var(--bg);color:var(--ink);font:14px/1.45 var(--body)}
-.wrap{max-width:1320px;margin:0 auto;padding-inline:16px;padding-block:18px 40px;display:flex;flex-direction:column;gap:14px}
-header{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 20px;justify-content:space-between}
+.wrap{max-width:1680px;margin:0 auto;padding-inline:16px;padding-block:18px 40px;display:flex;flex-direction:column;gap:14px}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:6px 20px;justify-content:space-between}
+.hd-left{display:flex;align-items:center;gap:14px;min-width:0}
+.burger{width:44px;height:44px;flex:none;display:inline-flex;flex-direction:column;justify-content:center;gap:5px;padding:0 11px;border-radius:6px}
+.burger span{display:block;height:2px;border-radius:1px;background:var(--ink)}
+#drawerBack{position:fixed;inset:0;background:rgba(8,16,18,.45);z-index:57}
+#drawer{position:fixed;top:0;left:0;bottom:0;width:min(340px,88vw);z-index:58;background:var(--panel);border-right:1px solid var(--line);box-shadow:8px 0 30px rgba(0,0,0,.18);
+  transform:translateX(-104%);visibility:hidden;transition:transform .22s ease,visibility 0s linear .22s;overflow-y:auto;
+  padding:calc(env(safe-area-inset-top,0px) + 14px) 16px calc(env(safe-area-inset-bottom,0px) + 20px);display:flex;flex-direction:column;gap:20px}
+#drawer.open{transform:none;visibility:visible;transition:transform .22s ease}
+@media (prefers-reduced-motion:reduce){#drawer,#drawer.open{transition:none}}
+.dr-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.dr-head b{font:700 20px var(--display)}
+.dr-head button{width:40px;height:40px;padding:0;font-size:18px}
+.dr-sec{display:flex;flex-direction:column;gap:6px}
+.dr-sec>.eyebrow{margin-bottom:2px}
+.dr-prog{display:flex;align-items:center;gap:10px;font:500 12px var(--mono);color:var(--muted)}
+.dr-prog .meter{flex:1;margin:0}
+.dr-item{display:grid;grid-template-columns:26px minmax(0,1fr) 16px;gap:2px 10px;align-items:center;width:100%;text-align:left;padding:8px 10px;border-radius:5px;background:transparent;border:1px solid transparent}
+.dr-item:hover{border-color:var(--line);background:var(--bg)}
+.dr-item .n{grid-row:span 2;width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font:500 12px var(--mono);background:var(--bg);border:1px solid var(--line);color:var(--muted)}
+.dr-item .nm{font-weight:600;font-size:14px;line-height:1.25}
+.dr-item .th{grid-column:2;font-size:12px;color:var(--muted);line-height:1.3}
+.dr-item .ck{grid-row:1/span 2;grid-column:3;color:var(--ok);font-weight:600}
+.dr-item[aria-current="true"]{background:var(--press);border-color:var(--press);color:var(--press-ink)}
+.dr-item[aria-current="true"] .th{color:inherit;opacity:.8}
+.dr-item[aria-current="true"] .n{background:transparent;color:inherit;border-color:currentColor}
+.dr-item[aria-current="true"] .ck{color:inherit}
+.dr-item.plain{grid-template-columns:26px minmax(0,1fr)}
+.dr-item.plain .n{grid-row:auto;font-size:14px}
+#legendModal .modal-card{max-width:980px}
 h1{font:700 30px/1 var(--display);margin:0;letter-spacing:-.02em}
 h1 small{display:block;font:500 14px/1.3 var(--body);letter-spacing:0;color:var(--muted);margin-top:6px}
 #clock{font:500 13px var(--mono);color:var(--muted)}
 #clock b{color:var(--water);font-weight:500}
-.main{display:grid;grid-template-columns:minmax(0,1fr) 360px;grid-template-areas:"a m" "a b";grid-template-rows:auto 1fr;gap:14px 16px;align-items:start}
-#mcard{grid-area:m}.left{grid-area:a}.right{grid-area:b}
-@media (max-width:940px){.main{grid-template-columns:minmax(0,1fr);grid-template-areas:"m" "a" "b";grid-template-rows:auto}}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 340px 290px;grid-template-areas:"a m s" "a b s";grid-template-rows:auto 1fr;gap:14px 16px;align-items:start}
+#mcard{grid-area:m}.left{grid-area:a}.right{grid-area:b}.stats{grid-area:s}
+@media (max-width:1259px){.main{grid-template-columns:minmax(0,1fr) 360px;grid-template-areas:"a m" "a b" "a s";grid-template-rows:auto auto 1fr}}
+@media (max-width:940px){.main{grid-template-columns:minmax(0,1fr);grid-template-areas:"m" "a" "b" "s";grid-template-rows:auto}}
 .col{display:flex;flex-direction:column;gap:12px;min-width:0}
 .bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .bar .sep{width:1px;height:22px;background:var(--line);margin:0 4px}
@@ -102,9 +155,34 @@ h2{font:700 15px var(--display);margin:0 0 8px}
 .budget .meter{flex:1;max-width:260px;margin:0}
 .budget.flash{color:var(--alert)}
 details summary{cursor:pointer;color:var(--muted);font-size:13px}
-#msolbox summary{display:inline-block;color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:4px 10px;font-weight:500}
-#msolbox[open] summary{margin-bottom:6px}
-#msolbox button{margin-top:8px}
+@media (min-width:941px){#mcard{max-height:calc(100vh - 110px);overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+  #mcard::-webkit-scrollbar{width:8px} #mcard::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}}
+#mcard>*{flex-shrink:0}
+#mextra{align-items:flex-start}
+#solModal .modal-card{max-width:620px}
+#solModal #msol{white-space:pre-line}
+/* fenêtre de la sonde : collée à droite pour laisser voir le terrain */
+#probePop{position:fixed;z-index:55;top:72px;right:16px;width:340px;max-width:calc(100vw - 32px);max-height:calc(100vh - 96px);overflow-y:auto;overscroll-behavior:contain;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;box-shadow:0 14px 40px rgba(0,0,0,.28);padding:14px 16px;display:flex;flex-direction:column;gap:10px;scrollbar-width:thin}
+#probePop>*{flex-shrink:0}
+#probePop .pp-head{display:grid;grid-template-columns:76px minmax(0,1fr) auto;gap:10px;align-items:start}
+#probePop .pp-head b{font:700 17px var(--display);display:block}
+#probePop .pp-head .pos{font:400 12px var(--mono);color:var(--muted)}
+#probePop .pp-close{padding:2px 9px;font-size:16px;line-height:1.2}
+#probePop p{margin:0;font-size:12.5px;line-height:1.45;color:var(--muted)}
+#probePop h3{font:500 11px var(--body);text-transform:uppercase;letter-spacing:.08em;color:var(--bistre);margin:4px 0 0}
+#probePop .pp-bars{grid-template-columns:minmax(0,auto) minmax(0,1fr);gap:3px 10px;font-size:12px;align-items:center}
+#probePop .pp-bars dd{display:flex;align-items:center;gap:6px;font:400 11px var(--mono);text-align:left}
+#probePop .pp-bars em{font-style:normal;min-width:62px;text-align:right;color:var(--ink)}
+@media (max-width:940px){#probePop{top:auto;bottom:12px;right:12px;left:12px;width:auto;max-width:none;max-height:46vh}}
+#mdebbox summary{display:inline-block;color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:4px 10px;font-weight:500}
+#mdeb{max-width:72ch;margin-top:6px;font-size:13px;color:var(--ink)}
+#mdeb h4{font:700 13px var(--body);margin:12px 0 2px}
+#mdeb p{margin:4px 0 !important;color:var(--ink)}
+#mdeb a{color:inherit}
+.tag{display:inline-block;font:500 10px var(--body);text-transform:uppercase;letter-spacing:.06em;padding:1px 6px;border-radius:3px;margin-right:4px;vertical-align:1px;border:1px solid currentColor}
+.tag.div{color:var(--alert)} .tag.ok{color:var(--muted)}
+#mvol{border:1px solid var(--line);border-radius:4px;padding:8px 10px;font-size:13px;display:flex;flex-direction:column;gap:3px;max-width:72ch}
+#mvol b{font-weight:600} #mvol .k{font:500 11px var(--body);text-transform:uppercase;letter-spacing:.08em;color:var(--bistre)} #mvol .legend{font-size:12px}
 details p{margin-top:6px !important;color:var(--muted)}
 #mverdict{border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:6px}
 #mverdict h3{font:700 17px var(--display);margin:0}
@@ -128,10 +206,23 @@ input[type=range]{width:110px;accent-color:var(--bistre)}
 
 <div class="wrap">
 <header>
-  <h1>Goutte à goutte<small>Comprendre le cycle de l'eau en aménageant un territoire</small></h1>
+  <div class="hd-left"><button id="burger" class="burger" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="drawer"><span></span><span></span><span></span></button>
+  <h1>Goutte à goutte<small>Comprendre le cycle de l'eau en aménageant un territoire</small></h1></div>
   <div id="clock">&nbsp;</div>
 </header>
-<nav class="bar" id="nav" aria-label="Missions"></nav>
+<div id="drawerBack" hidden></div>
+<aside id="drawer" aria-label="Menu" inert>
+  <div class="dr-head"><b>Goutte à goutte</b><button type="button" id="drClose" aria-label="Fermer le menu">✕</button></div>
+  <nav class="dr-sec" aria-label="Missions"><div class="eyebrow">Missions</div>
+    <div class="dr-prog"><span id="drProgTxt"></span><div class="meter"><i id="drProgBar"></i></div></div>
+    <div id="nav" class="dr-sec"></div></nav>
+  <div class="dr-sec"><div class="eyebrow">Le terrain</div>
+    <button type="button" class="dr-item plain" data-act="legend"><span class="n">▦</span><span class="nm">Légende des terrains</span></button>
+    <button type="button" class="dr-item plain" data-act="views"><span class="n">◐</span><span class="nm">Ce que montrent les vues</span></button></div>
+  <div class="dr-sec"><div class="eyebrow">Aide</div>
+    <button type="button" class="dr-item plain" data-act="tuto"><span class="n">?</span><span class="nm">Tutoriel</span></button>
+    <button type="button" class="dr-item plain" data-act="about"><span class="n">!</span><span class="nm">Jeu ou réalité ?</span></button></div>
+</aside>
 
 <div class="main">
   <section id="mcard">
@@ -139,10 +230,13 @@ input[type=range]{width:110px;accent-color:var(--bistre)}
     <h2 id="mname"></h2>
     <p id="mbrief"></p>
     <p class="legend" id="mmeteo"></p>
+    <div class="bar" id="mvariant" hidden><span class="lab">Hiver</span><button type="button" data-var="normal">Normal</button><button type="button" data-var="sec">Sec (pluies d'hiver ÷ 2)</button><span class="legend">Changer d'hiver recalcule la référence et remet le terrain d'origine.</span></div>
     <ul id="mobj"></ul>
     <div class="budget" id="mbudget"><span id="mbudtxt"></span><div class="meter"><i id="mbudbar"></i></div></div>
+    <div id="mvol" hidden></div>
     <details id="mhintbox"><summary>Un indice</summary><p id="mhint"></p></details>
-    <details id="msolbox"><summary>Solution</summary><p id="msol"></p><button type="button" id="msolapply">Appliquer cette solution sur la carte</button></details>
+    <div class="bar" id="mextra"><button type="button" id="msolopen">Voir la solution</button></div>
+    <details id="mdebbox" hidden><summary>Dans la réalité : le débat</summary><div id="mdeb"></div></details>
     <div id="mverdict" hidden><h3 id="mvtitle"></h3><p id="mvtext"></p><p class="legend" id="mvextra"></p></div>
     <div class="bar" id="mact"></div>
   </section>
@@ -161,29 +255,24 @@ input[type=range]{width:110px;accent-color:var(--bistre)}
     <button id="newmap">Nouveau terrain</button>
   </div>
   <div class="bar" id="tools"></div>
+  <p id="toolmsg" role="status" hidden></p>
   <div class="bar" id="viewbar">
     <span class="lab">Pinceau</span>
     <button data-brush="0" aria-pressed="true">1 case</button><button data-brush="1" aria-pressed="false">3 × 3</button>
     <span class="sep"></span>
-    <span class="lab">Carte</span>
-    <button data-view="terrain" aria-pressed="true">Terrain et eau</button><button data-view="sol" aria-pressed="false">Humidité du sol</button><button data-view="nappe" aria-pressed="false">Nappe</button><button data-view="vit" aria-pressed="false">Vitesse</button><button data-view="qual" aria-pressed="false">Qualité</button>
-    <span class="sep"></span>
     <span class="lab">Vitesse</span>
     <button data-speed="1">×1</button><button data-speed="2">×2</button><button data-speed="8">×8</button><button data-speed="32">×32</button>
   </div>
-  <div class="bar" id="projbar"><span class="lab">Vue</span><button data-proj="3d" aria-pressed="true">3D</button><button data-proj="plan" aria-pressed="false">Plan</button>
-    <span class="bar" id="isoctl"><span class="sep"></span><button id="rotl" title="Tourner vers la gauche" aria-label="Tourner vers la gauche">⟲</button><button id="rotr" title="Tourner vers la droite" aria-label="Tourner vers la droite">⟳</button><button id="zout" title="Dézoomer" aria-label="Dézoomer">−</button><button id="zin" title="Zoomer" aria-label="Zoomer">+</button><button id="zreset">Recentrer</button>
-    <span class="hint">Glisser avec « Sonder » pour tourner · molette ou pincement pour zoomer · clic droit ou Maj pour déplacer</span></span></div>
   <div id="mapbox"><canvas id="iso" aria-label="Vue en 3D du bassin versant"></canvas><canvas id="map" hidden></canvas></div>
+  <div class="bar" id="viewsel">
+    <span class="lab">Carte</span>
+    <button data-view="terrain" aria-pressed="true">Terrain et eau</button><button data-view="sol" aria-pressed="false">Place pour la pluie</button><button data-view="nappe" aria-pressed="false">Nappe</button><button data-view="vit" aria-pressed="false">Vitesse</button><button data-view="qual" aria-pressed="false">Qualité</button>
+  </div>
+  <div class="bar" id="projbar"><button type="button" id="openLegend">Légende des terrains</button><span class="sep"></span><span class="lab">Vue</span><button data-proj="3d" aria-pressed="true">3D</button><button data-proj="plan" aria-pressed="false">Plan</button>
+    <span class="bar" id="isoctl"><button id="rotl" title="Tourner vers la gauche" aria-label="Tourner vers la gauche">⟲</button><button id="rotr" title="Tourner vers la droite" aria-label="Tourner vers la droite">⟳</button><button id="zout" title="Dézoomer" aria-label="Dézoomer">−</button><button id="zin" title="Zoomer" aria-label="Zoomer">+</button><button id="zreset">Recentrer</button>
+    <span class="hint">Glisser avec « Sonder » pour tourner · molette ou pincement pour zoomer · clic droit ou Maj pour déplacer</span></span></div>
   <p class="legend" id="legend"></p>
   <div class="toolinfo"><p id="tooltext"></p><div class="props" id="toolprops"></div></div>
-  <section id="legendbox">
-    <h2>Légende des terrains</h2>
-    <p class="legend" style="margin-bottom:10px">Chaque barre compare les terrains entre eux. Cliquez sur un terrain pour le prendre comme outil, s'il est disponible dans la mission.</p>
-    <div class="lg-grid" id="lgcov"></div>
-    <h2 style="margin-top:16px">Aménagements et repères</h2>
-    <div class="lg-list" id="lgextra"></div>
-  </section>
  </div>
 
  <div class="col right">
@@ -210,10 +299,13 @@ input[type=range]{width:110px;accent-color:var(--bistre)}
   <section>
     <h2>Hydrogramme à l'exutoire</h2>
     <canvas id="hydro"></canvas>
+    <canvas id="ncurve" style="width:100%;height:70px;display:block;margin-top:6px" aria-label="Niveau moyen de la nappe"></canvas>
     <div class="key" id="hkey"></div>
     <p class="legend" id="hcap" style="margin-top:6px"></p>
     <dl style="margin-top:8px" id="hstats"></dl>
   </section>
+ </div>
+ <div class="col stats">
   <section>
     <h2>État du territoire</h2>
     <dl>
@@ -238,12 +330,110 @@ input[type=range]{width:110px;accent-color:var(--bistre)}
     <div class="row"><span>Dans le sol</span><span id="s2">0</span></div><div class="meter"><i id="m2"></i></div>
     <div class="row"><span>Dans la nappe</span><span id="s3">0</span></div><div class="meter"><i id="m3"></i></div>
   </section>
-  <section>
-    <h2>Sonde <span id="probepos" style="font:400 12px var(--mono);color:var(--muted)"></span></h2>
-    <dl id="probe"><dt>Survolez ou touchez une case</dt><dd></dd></dl>
-  </section>
  </div>
 </div>
+</div>
+<div id="solModal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="solTitle">
+  <div class="tuto-back" data-close="solModal"></div>
+  <div class="modal-card">
+    <div class="eyebrow" id="solEyebrow">Solution</div>
+    <h2 id="solTitle"></h2>
+    <p id="msol"></p>
+    <p class="legend">Ce n'est pas la seule réponse : c'est une façon de tenir les objectifs, expliquée. Appliquez-la pour la voir sur la carte, puis lancez la simulation.</p>
+    <div class="modal-foot"><button type="button" data-close="solModal">Fermer</button><button type="button" class="go" id="msolapply">Appliquer cette solution sur la carte</button></div>
+  </div>
+</div>
+<aside id="probePop" hidden role="dialog" aria-labelledby="ppName">
+  <div class="pp-head"><div id="ppIcon"></div><div><b id="ppName"></b><span class="pos" id="ppPos"></span></div><button type="button" class="pp-close" id="ppClose" aria-label="Fermer la fiche de la case">×</button></div>
+  <p id="ppTxt"></p>
+  <h3>Caractéristiques du terrain</h3>
+  <dl class="pp-bars" id="ppBars"></dl>
+  <h3>État de la case en ce moment</h3>
+  <dl id="ppState"></dl>
+  <p>Cliquez sur une autre case pour la sonder. La fiche se met à jour pendant la simulation.</p>
+</aside>
+<div id="legendModal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="lgTitle">
+  <div class="tuto-back" data-close="legendModal"></div>
+  <div class="modal-card">
+    <div class="eyebrow">Le terrain</div>
+    <h2 id="lgTitle">Légende des terrains</h2>
+    <p class="legend">Chaque barre compare les terrains entre eux. Cliquez sur un terrain pour le prendre comme outil.</p>
+    <div class="lg-grid" id="lgcov"></div>
+    <h3>Aménagements et repères</h3>
+    <div class="lg-list" id="lgextra"></div>
+    <div class="modal-foot"><button type="button" class="go" data-close="legendModal">Fermer</button></div>
+  </div>
+</div>
+<div id="viewsModal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="vwTitle">
+  <div class="tuto-back" data-close="viewsModal"></div>
+  <div class="modal-card">
+    <div class="eyebrow">Le terrain</div>
+    <h2 id="vwTitle">Ce que montrent les vues</h2>
+    <div id="vwBody"></div>
+    <div class="modal-foot"><button type="button" class="go" data-close="viewsModal">Fermer</button></div>
+  </div>
+</div>
+<div id="about" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+  <div class="tuto-back" data-close="about"></div>
+  <div class="modal-card">
+    <div class="eyebrow">À lire avant de tirer des conclusions</div>
+    <h2 id="aboutTitle">Jeu ou réalité ?</h2>
+    <p class="note"><b>Goutte à goutte est un outil pédagogique, pas un outil scientifique.</b> Il sert à comprendre comment l'eau circule dans un territoire et à discuter des choix d'aménagement. Ses chiffres sont des ordres de grandeur sur une vallée inventée : ils ne prédisent rien sur un bassin réel et ne doivent pas servir d'argument chiffré pour ou contre un projet.</p>
+    <h3>Ce qui est solide</h3>
+    <ul>
+      <li>L'eau est conservée : pluie, évaporation, sortie en mer et variation des stocks s'équilibrent, à 0,1 % près.</li>
+      <li>Les équations sont de la même famille que celles des modèles hydrologiques simples : réservoirs de sol et de nappe, capacité d'infiltration, écoulement de surface selon la formule de Manning, transferts dans la nappe selon les différences de niveau, évaporation selon le climat et le type de couvert.</li>
+      <li>Le sens des effets est en général juste : un sol nu ruisselle, la nappe soutient la rivière en été, pomper près d'un cours d'eau le vide, une retenue s'évapore.</li>
+    </ul>
+    <h3>Les différences notables avec une simulation réelle</h3>
+    <div class="tbl"><table>
+      <thead><tr><th>Aspect</th><th>Dans le jeu</th><th>Dans une étude réelle</th></tr></thead>
+      <tbody>
+        <tr><td>Données</td><td>Terrain inventé ; paramètres choisis pour que les effets se voient à l'écran</td><td>Relief, sols, géologie, occupation du sol et météo mesurés</td></tr>
+        <tr><td>Calage</td><td>Aucun : le modèle n'a jamais été comparé à des mesures</td><td>Paramètres ajustés sur des années de débits et de niveaux de nappe observés, puis vérifiés sur d'autres années</td></tr>
+        <tr><td>Temps</td><td>Saisons de quelques jours, pluies stylisées</td><td>Des dizaines d'années de météo réelle, au pas horaire ou journalier</td></tr>
+        <tr><td>Espace</td><td>Cases de 250 m ; la rivière occupe une case entière</td><td>Mailles plus fines, profil réel du lit et de la plaine inondable</td></tr>
+        <tr><td>Nappe</td><td>Une seule couche uniforme, très réactive, réglée mission par mission</td><td>Plusieurs couches géologiques, perméabilités mesurées, forages réels</td></tr>
+        <tr><td>Sol et plantes</td><td>Un réservoir par case, coefficients fixes, récolte très approximative</td><td>Physique de l'eau dans le sol, croissance des cultures, modèles agronomiques</td></tr>
+        <tr><td>Qualité de l'eau</td><td>Un indice qui suit l'eau ; pas de chimie, pas de lessivage des nitrates vers la nappe</td><td>Nitrates, pesticides, sédiments, réactions et dégradation</td></tr>
+        <tr><td>Ouvrages</td><td>Barrages et réserves simplifiés, règles de remplissage stylisées</td><td>Dimensions, vannes, règles de gestion et autorisations réelles</td></tr>
+        <tr><td>Pluie recyclée</td><td>Une jauge d'atmosphère, la moitié de l'évaporation retombe sur place</td><td>Modèles climatiques régionaux ; l'effet est faible à l'échelle d'un petit bassin</td></tr>
+        <tr><td>Société et économie</td><td>Un budget en crédits</td><td>Coûts réels, usages, droits d'eau, concertation</td></tr>
+        <tr><td>Incertitude</td><td>Une seule réponse, présentée comme nette</td><td>Plusieurs scénarios climatiques et marges d'erreur</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Où se situe le jeu</h3>
+    <p>Du plus simple au plus complet : ce jeu, une maquette ; les modèles globaux qui traitent un bassin comme quelques réservoirs (par exemple <a href="https://webgr.inrae.fr/outils/modeles-hydrologiques/modele-hydrologique-journalier-gr4j" target="_blank" rel="noopener">GR4J</a>, d'INRAE) ; les modèles de bassin agricole qui suivent cultures et qualité (par exemple <a href="https://swat.tamu.edu/" target="_blank" rel="noopener">SWAT</a>) ; les modèles physiques détaillés couplés à des modèles de nappe (<a href="https://www.dhigroup.com/technologies/mikepoweredbydhi/mike-she" target="_blank" rel="noopener">MIKE SHE</a>, <a href="https://parflow.org/" target="_blank" rel="noopener">ParFlow</a>, <a href="https://www.usgs.gov/software/modflow-6-usgs-modular-hydrologic-model" target="_blank" rel="noopener">MODFLOW</a> de l'USGS, <a href="https://www.brgm.fr/fr/logiciel/marthe-logiciel-modelisation-ecoulements-souterrains" target="_blank" rel="noopener">MARTHE</a> du BRGM). Un modèle bien calé reproduit les débits observés à quelques dizaines de pourcents près ; sur un bassin réel, les chiffres du jeu pourraient s'écarter d'un facteur 2 ou plus, et certains arbitrages pourraient s'inverser.</p>
+    <h3>Comment s'en servir</h3>
+    <ul>
+      <li>Pour comprendre des mécanismes et poser les bonnes questions : d'où vient l'eau, où va-t-elle, qui en manque, quand.</li>
+      <li>Pour animer un débat, en rappelant que les réponses dépendent des hypothèses.</li>
+      <li>Pas pour trancher un projet réel : seule une étude sur données mesurées, calée et vérifiée, peut le faire.</li>
+    </ul>
+    <div class="modal-foot"><button type="button" class="go" data-close="about">J'ai compris</button></div>
+  </div>
+</div>
+<div id="fin" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="finTitle">
+  <div class="tuto-back" data-close="fin"></div>
+  <div class="modal-card">
+    <canvas id="finDrops" aria-hidden="true"></canvas>
+    <div class="big">Bravo !</div>
+    <h2 id="finTitle"></h2>
+    <p>Vous avez suivi l'eau de la pluie jusqu'à la mer, et de la mer jusqu'au nuage. En chemin, vous avez vu que :</p>
+    <ul>
+      <li>le sol décide du partage entre infiltration et ruissellement, et l'endroit où l'on agit compte autant que la surface ;</li>
+      <li>freiner l'eau étale les crues, mais une eau lente monte plus haut ;</li>
+      <li>bâtir, assécher ou rectifier déplace le problème vers l'aval ;</li>
+      <li>un sol plein ne protège plus : il faut alors du volume libre, au bon endroit ;</li>
+      <li>l'eau emporte ce qu'elle traverse, et une bande de végétation au bon endroit la protège ;</li>
+      <li>la rivière d'été est faite de la pluie d'hiver infiltrée ;</li>
+      <li>rivière et nappe sont un même réservoir, que tous les usages se partagent ;</li>
+      <li>stocker l'eau d'hiver a des avantages et un prix, qui dépendent des années ;</li>
+      <li>sur des années sèches, aucune solution unique ne suffit : on combine, avec sobriété.</li>
+    </ul>
+    <p class="note">Gardez en tête que Goutte à goutte est une maquette pédagogique : la page « Jeu ou réalité ? » explique ce qui la sépare d'une vraie étude hydrologique.</p>
+    <div class="modal-foot"><button type="button" data-open-about="1">Jeu ou réalité ?</button><button type="button" id="finSand">Continuer en bac à sable</button><button type="button" class="go" data-close="fin">Fermer</button></div>
+  </div>
 </div>
 <div id="tuto" hidden role="dialog" aria-modal="true" aria-labelledby="tutoTitle">
   <div class="tuto-back"></div>
@@ -252,6 +442,7 @@ input[type=range]{width:110px;accent-color:var(--bistre)}
     <div class="eyebrow" id="tutoStep"></div>
     <h2 id="tutoTitle"></h2>
     <div id="tutoBody"></div>
+    <label class="tuto-off"><input type="checkbox" id="tutoOff"> Ne plus afficher au démarrage</label>
     <div class="tuto-nav"><button id="tutoSkip">Fermer</button><span class="dots" id="tutoDots"></span><button id="tutoPrev">Précédent</button><button id="tutoNext" class="go">Suivant</button></div>
   </div>
 </div>
@@ -264,16 +455,17 @@ input[type=range]{width:110px;accent-color:var(--bistre)}
 "use strict";
 const s=Sim,{GW,GH,N,C,h,W,S,G,V,cov,sea,pump,dist,st,GMAX,DAQ}=s;
 const SEED=20261005, M3=s.DX*s.DX/1000;          // m³ par mm d'eau sur une case
-const $=id=>document.getElementById(id), fx=v=>v.toFixed(v<10?1:0).replace(".",",");
+const $=id=>document.getElementById(id), fx=v=>v.toFixed(v<10?1:0).replace(".",","), fx2=v=>v.toFixed(2).replace(".",",");
 const kM3=v=>{const k=v*M3/1000;return k<1?"0":k<1000?Math.round(k)+" milliers de m³":fx(k/1000)+" millions de m³"};
-const TOOLS=[{id:"inspect",name:"Sonder",txt:"Survolez la carte pour lire l'état de chaque case : lame d'eau, vitesse, humidité du sol, profondeur de la nappe."}]
+const TOOLS=[{id:"inspect",name:"Sonder",txt:"Cliquez sur une case : sa fiche s'ouvre à droite, avec les caractéristiques du terrain et son état en direct (lame d'eau, vitesse, humidité du sol, profondeur de la nappe)."}]
  .concat(C.map((c,i)=>({id:"c"+i,cov:i,name:c.name,txt:c.txt,cost:c.cost})))
  .concat([{id:"dam",name:"Barrage",cost:s.COST_UP,txt:"Cliquez dans le creux d'une vallée : le barrage se construit tout seul en travers de l'écoulement, d'un versant à l'autre, avec une crête de niveau. L'aperçu montre son tracé (orange), le sens de l'eau (flèche) et la zone que la retenue noiera (bleu). Il arrête la crue venue de l'amont, recharge la nappe et s'évapore en été. Le barrage plein retient tout jusqu'à déborder ; le barrage écrêteur a un pertuis à sa base qui laisse passer le débit normal et ne stocke que la pointe de la crue. Cliquez sur un barrage existant pour le retirer."},
           {id:"up",name:"Remblai (+2 m)",cost:s.COST_UP,txt:"Rehausse de 2 m les cases peintes, une à une. Utile pour une levée de terre le long d'une rive ; pour barrer une vallée, préférez l'outil Barrage."},
           {id:"down",name:"Creuser (−2 m)",cost:s.COST_DOWN,txt:"Abaisse le terrain de 2 m. Un creux recueille le ruissellement qui passe, et s'il descend jusqu'à la nappe, il se remplit par le dessous."},
           {id:"slow",name:"Haies et méandres",cost:s.COST_SLOW,txt:"Freine l'eau sans changer le sol : haies et talus en travers de la pente, ou méandres et végétation dans le lit de la rivière. L'eau arrive plus tard, plus étalée, et a le temps de s'infiltrer. Dans un champ, la haie prend un dixième de la surface, mais elle abrite les champs voisins du vent : +5 % de récolte autour d'elle, +8 % entre deux haies. Dans la rivière, une eau plus lente est aussi plus haute. Repassez sur une case pour retirer l'aménagement."},
           {id:"fast",name:"Fossés et lit rectifié",cost:0,txt:"Accélère l'eau : fossés de drainage sur les versants, lit rectifié et curé dans la rivière. L'eau quitte vite la parcelle, et arrive tout aussi vite, et en même temps que les autres, à l'aval."},
-          {id:"res",name:"Réserve",cost:s.COST_RES,txt:"Peignez une réserve d'eau : un bassin bâché de 5 m de profondeur (une case, c'est 6,25 ha et environ 310 000 m³). Isolée du sol, elle ne recharge pas la nappe. Pendant la saison de remplissage, des forages pompent la nappe autour d'elle tant qu'elle reste au-dessus d'un seuil ; ensuite, elle irrigue les cultures à 6 cases à la ronde. Elle reçoit la pluie, s'évapore au soleil, et son eau se concentre et se réchauffe. Repassez sur une case pour la retirer."},
+          {id:"soil",name:"Sol vivant",cost:1,txt:"Sur une case cultivée : couverts entre deux cultures, matière organique, moins de labour. Le sol infiltre mieux (+8 mm/h) et garde 20 mm d'eau de plus pour la culture. C'est une hypothèse prudente : l'effet réel dépend des sols et du temps qu'on lui laisse. Repassez sur une case pour retirer."},
+          {id:"res",name:"Réserve",cost:s.COST_RES,txt:"Peignez une réserve d'eau : un bassin bâché de 5 m de profondeur. Une case, c'est 6,25 ha et environ 310 000 m³, la taille d'une « méga-bassine » moyenne ; Sainte-Soline en vaut deux. Isolée du sol, elle ne recharge pas la nappe. Pendant la saison de remplissage, des forages pompent la nappe autour d'elle tant qu'elle reste au-dessus d'un seuil ; ensuite, elle irrigue les cultures à 6 cases à la ronde. Elle reçoit la pluie, s'évapore au soleil, et son eau se concentre et se réchauffe. Repassez sur une case pour la retirer."},
           {id:"pump",name:"Pompe",cost:s.COST_PUMP,txt:"Irrigue les cultures à 3 cases à la ronde. Elle prend d'abord l'eau de surface de sa case (rivière, retenue), sinon elle puise dans la nappe. Cliquez de nouveau pour la retirer."}]);
 let mode="mission", mi=0, phase="prep", ctx=null, lastHist=null, tal=null, verdict=null;
 const COST_ECR=10;
@@ -291,45 +483,78 @@ function tally(){let c=0,nt=0,cr=0,cr0=0;
     if(cov[i]===2)cr++; if(ctx.cov0[i]===2)cr0++ }
   let np=0;for(let i=0;i<N;i++)np+=pump[i];
   for(const d of dams)if(d.ori)c+=COST_ECR;
-  for(let i=0;i<N;i++)if(s.res[i])c+=s.COST_RES;
+  for(let i=0;i<N;i++){if(s.res[i])c+=s.COST_RES;if(s.soilv[i])c+=1}
   return{cost:Math.round(c),newTown:nt,crops:cr,crops0:cr0,pumps:np}}
-function loadMission(i){ if(busy)return; $("msolbox").open=false; $("mhintbox").open=false; busy=true; mode="mission"; mi=i; phase="load"; lastHist=null; verdict=null; renderNav(); renderCard();
-  setTimeout(()=>{const m=M(); st.script=m.script; st.meteo="none"; s.generate(SEED,m.setup);
+let variant="normal";
+function SCR(){return st.script&&mode==="mission"?st.script:MISSIONS[mi].script}
+function scriptFor(m){if(!m.variants||variant!=="sec")return m.script;const sc=JSON.parse(JSON.stringify(m.script)),lim=(sc.fillUntil||0)*24;
+  sc.rain=sc.rain.map(r=>r[0]<lim?[r[0],Math.round(r[1]*0.5*10)/10,r[2]]:r);return sc}
+function loadMission(i){ if(busy)return; if(i!==mi)variant="normal"; closeModal("solModal",true); $("mhintbox").open=false; $("mdebbox").open=false; busy=true; mode="mission"; mi=i; phase="load"; lastHist=null; verdict=null; renderNav(); renderCard();
+  setTimeout(()=>{const m=M(); st.script=scriptFor(m); st.meteo="none"; s.generate(SEED,m.setup);
     clearDams(); ctx={snap:s.snapshot(),cov0:cov.slice(),h0:h.slice(),fr0:s.fr.slice()};
     s.runAll(); ctx.base=Object.assign({},st.m); ctx.baseHist=st.hist.slice();
-    s.restore(ctx.snap); s.resetRun(); st.etpDay=m.script.etp[0][1];
+    s.restore(ctx.snap); s.resetRun(); st.etpDay=st.script.etp[0][1];
     phase="prep"; tal=tally(); setSpeed(m.speed); baseDirty=true; busy=false;
     buildTools(); setTool("inspect"); renderCard(); },40)}
 function loadSandbox(){ if(busy)return; mode="sandbox"; phase="free"; ctx=null; lastHist=null; verdict=null;
   clearDams(); st.script=null; st.meteo=$("meteo").value; st.etpDay=+$("etp").value; s.generate(SEED); playing=true; setSpeed(1); baseDirty=true;
   renderNav(); buildTools(); setTool("inspect"); renderCard(); }
-function launch(){ s.restore(ctx.snap); s.resetRun(); st.etpDay=M().script.etp[0][1]; phase="run"; playing=true; verdict=null; setTool("inspect"); renderCard(); }
-function backToPrep(){ if(st.hist.length>4)lastHist=st.hist.slice(); s.restore(ctx.snap); s.resetRun(); st.etpDay=M().script.etp[0][1]; phase="prep"; verdict=null; renderCard(); }
-function resetTerrain(){ clearDams(); for(let i=0;i<N;i++)if(s.res[i])s.setRes(i,0); s.fr.set(ctx.fr0); cov.set(ctx.cov0); h.set(ctx.h0); for(let i=0;i<N;i++)if(pump[i])s.setPump(i,0); s.restore(ctx.snap); tal=tally(); baseDirty=true; renderCard(); }
+function launch(){ s.restore(ctx.snap); s.resetRun(); st.etpDay=SCR().etp[0][1]; phase="run"; playing=true; verdict=null; setTool("inspect"); renderCard(); }
+function backToPrep(){ if(st.hist.length>4)lastHist=st.hist.slice(); s.restore(ctx.snap); s.resetRun(); st.etpDay=SCR().etp[0][1]; phase="prep"; verdict=null; renderCard(); }
+function resetTerrain(){ clearDams(); for(let i=0;i<N;i++){if(s.res[i])s.setRes(i,0);s.soilv[i]=0} s.fr.set(ctx.fr0); cov.set(ctx.cov0); h.set(ctx.h0); for(let i=0;i<N;i++)if(pump[i])s.setPump(i,0); s.restore(ctx.snap); tal=tally(); baseDirty=true; renderCard(); }
 function applySolution(){ if(mode!=="mission"||phase==="load")return; if(phase!=="prep")backToPrep(); resetTerrain();
   M().sol.apply(solOps((i,H,e)=>placeDam(i,H,e,true))); tal=tally(); baseDirty=true; isoDirty=true; renderCard();
-  $("msolbox").open=true; $("tooltext").textContent="Solution appliquée : regardez la carte, puis lancez la simulation pour la vérifier."}
+  closeModal("solModal"); $("tooltext").textContent="Solution appliquée : regardez la carte, puis lancez la simulation pour la vérifier."}
 $("msolapply").addEventListener("click",applySolution);
-function finish(){ phase="done"; st.m.t50=s.half(); st.m.harvest=s.harvest(); const m=M(), res=m.obj.map(o=>o.ok(st.m,ctx.base,tal)); verdict={res,win:res.every(Boolean)};
-  if(verdict.win){done[m.id]=1;try{localStorage.setItem("bv-missions",JSON.stringify(done))}catch(e){}}
+$("msolopen").addEventListener("click",()=>{const m=M();$("solTitle").textContent=m.name;$("solEyebrow").textContent="Solution · mission "+(mi+1);openModal("solModal")});
+document.querySelectorAll("[data-var]").forEach(b=>b.addEventListener("click",()=>{if(b.dataset.var===variant||busy)return;variant=b.dataset.var;loadMission(mi)}));
+let lastFocus=null, finShown=false;
+function openModal(id){lastFocus=document.activeElement;$(id).hidden=false;const b=$(id).querySelector(".go");if(b)b.focus({preventScroll:true});if(id==="fin")finDrops()}
+function closeModal(id,quiet){if($(id).hidden)return;$(id).hidden=true;if(!quiet&&lastFocus&&lastFocus.focus)lastFocus.focus({preventScroll:true})}
+document.addEventListener("click",e=>{const c=e.target.closest("[data-close]");if(c)closeModal(c.dataset.close);if(e.target.closest("[data-open-about]")){closeModal("fin");openModal("about")}});
+document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;let shut=false;document.querySelectorAll(".modal").forEach(m=>{if(!m.hidden){closeModal(m.id);shut=true}});if(!shut&&!$("probePop").hidden){closeProbe();shut=true}if(!shut)closeDrawer()});
+$("burger").addEventListener("click",()=>{$("drawer").classList.contains("open")?closeDrawer():openDrawer()});
+$("drClose").addEventListener("click",closeDrawer);$("drawerBack").addEventListener("click",closeDrawer);
+function buildViews(){const V=[["Terrain et eau",LEG.t3],["Place pour la pluie",LEG.sol],["Nappe",LEG.nappe],["Vitesse",LEG.vit],["Qualité",LEG.qual],
+  ["Hydrogramme","En haut, la pluie (mm/h) ; en bas, le débit de la rivière à son arrivée en mer (m³/s). En pointillé, la même météo sans vos aménagements. En mission, la courbe de votre essai précédent reste affichée."],
+  ["Courbe de la nappe","Sous l'hydrogramme : le remplissage moyen de la nappe, avec la référence en pointillé. Si votre courbe passe sous la référence, la nappe a perdu de l'eau à cause de vos choix."],
+  ["Commandes de la carte 3D","Avec l'outil « Sonder », faites glisser pour tourner autour de la vallée et changer l'inclinaison ; molette ou pincement pour zoomer ; clic droit ou Maj + glisser pour déplacer. La vue « Plan », vue de dessus, sert à peindre case par case."]];
+  $("vwBody").innerHTML=V.map(v=>"<h3>"+v[0]+"</h3><p>"+v[1]+"</p>").join("")}
+$("drawer").addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(!b)return;const a=b.dataset.act;closeDrawer();
+  if(a==="legend")openModal("legendModal");else if(a==="views"){buildViews();openModal("viewsModal")}else if(a==="tuto")tutoShow(0);else if(a==="about")openModal("about")});
+$("openLegend").addEventListener("click",()=>openModal("legendModal"));
+$("finSand").addEventListener("click",()=>{closeModal("fin");loadSandbox()});
+function finDrops(){const c=$("finDrops"),w=c.clientWidth,hh=150;c.width=Math.round(w*dpr);c.height=Math.round(hh*dpr);const g=c.getContext("2d");g.setTransform(dpr,0,0,dpr,0,0);
+  const col=css("--water"),drops=[];for(let k=0;k<46;k++)drops.push({x:Math.random()*w,y:-Math.random()*hh,v:1.2+Math.random()*2.4,r:2.5+Math.random()*3.5});
+  const paint=()=>{g.clearRect(0,0,w,hh);g.fillStyle=col;for(const d of drops){g.globalAlpha=0.35+0.4*(d.r/6);g.beginPath();g.moveTo(d.x,d.y-d.r*1.8);g.quadraticCurveTo(d.x+d.r,d.y,d.x,d.y+d.r);g.quadraticCurveTo(d.x-d.r,d.y,d.x,d.y-d.r*1.8);g.fill()}g.globalAlpha=1};
+  if(reduce){for(const d of drops)d.y=Math.random()*hh*0.8;paint();return}
+  let n=0;const tick=()=>{if($("fin").hidden||n++>420)return;for(const d of drops){d.y+=d.v;if(d.y>hh+8&&n<300){d.y=-10;d.x=Math.random()*w}}paint();requestAnimationFrame(tick)};tick()}
+function checkAllDone(){if(!MISSIONS.every(x=>done[x.id]))return;let seen=finShown;try{seen=seen||!!localStorage.getItem("gag-fin")}catch(e){}
+  if(seen)return;finShown=true;try{localStorage.setItem("gag-fin","1")}catch(e){}
+  $("finTitle").textContent="Vous avez réussi les "+MISSIONS.length+" missions de Goutte à goutte";setTimeout(()=>openModal("fin"),900)}
+function finish(){ phase="done"; st.m.t50=s.half(); st.m.harvest=s.harvest(); st.m.gEnd=s.gAvg(); const m=M(), res=m.obj.map(o=>o.ok(st.m,ctx.base,tal)); verdict={res,win:res.every(Boolean)};
+  if(verdict.win){done[m.id]=1;try{localStorage.setItem("bv-missions",JSON.stringify(done))}catch(e){}checkAllDone()}
   renderNav(); renderCard(); }
 
 function renderNav(){const nav=$("nav");nav.innerHTML="";
-  MISSIONS.forEach((m,i)=>{const b=document.createElement("button");b.setAttribute("aria-pressed",mode==="mission"&&mi===i);
-    b.innerHTML='<span class="n">'+(i+1)+"</span>"+m.name+(done[m.id]?'<span class="done" title="Mission réussie">✓</span>':"");
-    b.addEventListener("click",()=>loadMission(i));nav.appendChild(b)});
-  const sep=document.createElement("span");sep.className="sep";nav.appendChild(sep);
-  const b=document.createElement("button");b.textContent="Bac à sable";b.setAttribute("aria-pressed",mode==="sandbox");b.addEventListener("click",loadSandbox);nav.appendChild(b);
-  const tb2=document.createElement("button");tb2.textContent="Tutoriel";tb2.addEventListener("click",()=>tutoShow(0));nav.appendChild(tb2)}
+  MISSIONS.forEach((m,i)=>{const b=document.createElement("button");b.type="button";b.className="dr-item";b.setAttribute("aria-current",mode==="mission"&&mi===i);
+    b.innerHTML='<span class="n">'+(i+1)+'</span><span class="nm">'+m.name+'</span><span class="ck">'+(done[m.id]?'<span title="Mission réussie">✓</span>':"")+'</span><span class="th">'+m.theme+'</span>';
+    b.addEventListener("click",()=>{closeDrawer();loadMission(i)});nav.appendChild(b)});
+  const sb=document.createElement("button");sb.type="button";sb.className="dr-item plain";sb.setAttribute("aria-current",mode==="sandbox");
+  sb.innerHTML='<span class="n">∞</span><span class="nm">Bac à sable</span>';sb.addEventListener("click",()=>{closeDrawer();loadSandbox()});nav.appendChild(sb);
+  const nd=MISSIONS.filter(x=>done[x.id]).length;$("drProgTxt").textContent=nd+" / "+MISSIONS.length+" réussies";$("drProgBar").style.width=nd/MISSIONS.length*100+"%"}
+function openDrawer(){const d=$("drawer");d.removeAttribute("inert");d.classList.add("open");$("drawerBack").hidden=false;$("burger").setAttribute("aria-expanded","true");
+  const cur=d.querySelector('[aria-current="true"]')||d.querySelector("button");setTimeout(()=>cur&&cur.focus({preventScroll:true}),30)}
+function closeDrawer(){const d=$("drawer");if(!d.classList.contains("open"))return;d.classList.remove("open");d.setAttribute("inert","");$("drawerBack").hidden=true;$("burger").setAttribute("aria-expanded","false");$("burger").focus({preventScroll:true})}
 function btn(label,fn,cls){const b=document.createElement("button");b.textContent=label;if(cls)b.className=cls;b.addEventListener("click",fn);return b}
 function renderCard(){
   const sand=mode==="sandbox", act=$("mact"); act.innerHTML="";
-  $("sandbar").hidden=!sand; $("mobj").hidden=$("mbudget").hidden=$("mhintbox").hidden=$("msolbox").hidden=$("mmeteo").hidden=sand; $("mverdict").hidden=true;
+  $("sandbar").hidden=!sand; $("mobj").hidden=$("mbudget").hidden=$("mhintbox").hidden=$("msolopen").hidden=$("mmeteo").hidden=sand; $("mverdict").hidden=true;
   if(sand){ $("meyebrow").textContent="Mode libre"; $("mname").textContent="Bac à sable";
     $("mbrief").textContent="Tous les outils, pas de budget ni d'objectif. Déclenchez la pluie vous-même ou laissez faire la météo, et observez ce que chaque aménagement change sur l'hydrogramme.";
     const p=btn(playing?"Pause":"Reprendre",()=>{playing=!playing;renderCard()});act.appendChild(p); return }
   const m=M(); $("meyebrow").textContent="Mission "+(mi+1)+" sur "+MISSIONS.length+" · "+m.theme; $("mname").textContent=m.name;
-  $("mbrief").textContent=m.brief; $("mmeteo").textContent="Météo imposée : "+m.meteo+"."; $("mhint").textContent=m.hint; $("msol").textContent=m.sol.txt;
+  $("mbrief").textContent=m.brief; $("mvariant").hidden=!m.variants; document.querySelectorAll("[data-var]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.var===variant)); $("mmeteo").textContent="Météo imposée : "+m.meteo+"."; $("mhint").textContent=m.hint; $("msol").textContent=m.sol.txt; $("mdebbox").hidden=!m.debate; if(m.debate&&$("mdeb").dataset.m!==m.id){$("mdeb").innerHTML=m.debate;$("mdeb").dataset.m=m.id} renderVolumes();
   if(phase==="load"){ $("mobj").innerHTML='<li><span class="st">…</span><span>Calcul de la situation de référence, sans aucun aménagement</span></li>'; $("mbudget").hidden=true; return }
   renderObjectives();
   if(phase==="prep"){ act.appendChild(btn("Lancer la simulation",launch,"go")); act.appendChild(btn("Revenir au terrain d'origine",resetTerrain));
@@ -339,7 +564,11 @@ function renderCard(){
     $("mvtitle").textContent=verdict.win?"Mission réussie":"Objectifs non atteints";
     $("mvtext").textContent=verdict.win?m.learn:"Regardez sur l'hydrogramme où votre courbe s'écarte de la référence, puis ajustez. "+m.hint;
     const x=[];const mm=st.m;
-    if(mm.resIn>0){const tot=mm.resIn+mm.resRain;x.push("Réserve : "+kM3(mm.resIn)+" pompés dans la nappe pendant le remplissage, "+kM3(mm.resRain)+" de pluie ; "+kM3(mm.resEvap)+" évaporés ("+Math.round(mm.resEvap/tot*100)+" %), "+kM3(mm.resOut)+" ont irrigué, "+kM3(st.res.V)+" restent.");
+    if(mm.resIn>0){const fw=s.fillWins(SCR())[0],k=Math.min(st.hist.length,ctx.baseHist.length,fw[1]*48)-1;
+      if(k>0){let pumped=0;const dO=ctx.baseHist[k].o-st.hist[k].o,dG=(ctx.baseHist[k].g-st.hist[k].g)*GMAX*st.nLand;
+        const p1=Math.max(1,dO+dG);x.push("D'où vient l'eau pompée pendant le premier remplissage : environ "+Math.round(Math.max(0,dO)/p1*100)+" % manque à la rivière, qui a moins coulé vers la mer, et "+Math.round(Math.max(0,dG)/p1*100)+" % manque dans la nappe, comparé à la référence.")}
+      const tot=mm.resIn+mm.resRain;x.push("Réserve : "+kM3(mm.resIn)+" pompés dans la nappe pendant le remplissage, "+kM3(mm.resRain)+" de pluie ; "+kM3(mm.resEvap)+" évaporés ("+Math.round(mm.resEvap/tot*100)+" %), "+kM3(mm.resOut)+" ont irrigué, "+kM3(st.res.V)+" restent.");
+      {const c=s.cone(ctx.base.Gfill,mm.Gfill);if(c)x.push("Nappe à la fin de l'hiver, comparée à la référence : "+fx2(c.avg)+" m plus basse en moyenne, jusqu'à "+fx2(c.max)+" m près des forages. Pour le projet des Deux-Sèvres, le BRGM annonce une baisse d'hiver souvent supérieure à 50 cm ; une contre-expertise l'estime jusqu'à 1,5 m localement.")}
       x.push("Qualité : l'eau stockée est montée jusqu'à "+Math.round(mm.resCmax)+" mg/L (départ "+s.CN+") en s'évaporant, et elle est restée "+Math.round(mm.algae)+" jours stagnante au chaud, ce qui favorise les algues.")}
     if(mm.nWin&&ctx.base.nWin){const a=mm.qWin/mm.nWin,b0=ctx.base.qWin/ctx.base.nWin;x.push("Débit moyen de la rivière pendant l'hiver : "+fx(a)+" m³/s, contre "+fx(b0)+" sans aménagement ("+(a<b0?"−":"+")+Math.abs(Math.round((a/b0-1)*100))+" %).")}
     if(st.m.evapOpen>ctx.base.evapOpen*1.5+200)x.push("Les plans d'eau ont évaporé "+kM3(st.m.evapOpen)+", contre "+kM3(ctx.base.evapOpen)+" sans aménagement.");
@@ -357,15 +586,26 @@ function renderObjectives(){ const m=M(), ul=$("mobj"); let html="";
     else cur="référence : "+o.cur(ctx.base,ctx.base,tal).split("· référence ")[1];
     html+='<li class="'+cls+'"><span class="st">'+mark+"</span><span>"+o.txt+'</span><span class="cur">'+cur+"</span></li>" });
   ul.innerHTML=html;
-  $("mbudtxt").textContent="Budget : "+tal.cost+" / "+m.budget+" crédits"; $("mbudbar").style.width=Math.min(100,tal.cost/m.budget*100)+"%"; }
+  $("mbudtxt").textContent="Budget : "+tal.cost+" / "+m.budget+" crédits"; $("mbudbar").style.width=Math.min(100,tal.cost/m.budget*100)+"%"; renderVolumes(); }
+// volumes engagés : capacité des réserves posées, pompage dans la nappe, recharge de l'hiver
+function renderVolumes(){const m=M(),el=$("mvol");if(mode!=="mission"||!m||!m.volumes||phase==="load"){el.hidden=true;return}el.hidden=false;
+  let n=0;for(let i=0;i<N;i++)n+=s.res[i];const cap=n*s.RES_D,mm=st.m,h=[];
+  h.push('<span class="k">Volumes engagés</span>');
+  h.push("<span>Capacité des réserves : <b>"+(n?kM3(cap):"aucune")+"</b>"+(n?" ("+n+" bassine"+(n>1?"s":"")+" de taille moyenne)":"")+"</span>");
+  if(phase!=="prep"&&mm.resIn>0){const rb=ctx.base.rechW||1;
+    h.push("<span>Pompé dans la nappe pour les remplir : <b>"+kM3(mm.resIn)+"</b>, soit "+Math.round(mm.resIn/st.nLand)+" mm d'eau sur toute la carte et "+Math.round(mm.resIn/rb*100)+" % de ce qui a rechargé la nappe cet hiver sans aménagement</span>")}
+  h.push('<span class="legend">Pour comparer : Sainte-Soline, environ 628 000 m³ ; le programme des Deux-Sèvres, 16 réserves pour 6,2 à 6,9 millions de m³ selon les sources, sur un territoire bien plus vaste que cette carte de 77 km².</span>');
+  el.innerHTML=h.join("")}
 
 /* ---------- rendu de la carte ---------- */
 const cv=$("map"),cx2=cv.getContext("2d"),base=document.createElement("canvas"),bctx=base.getContext("2d");
 let ts=16,dpr=1;
-function resize(){const bw=$("mapbox").clientWidth;ts=Math.max(6,Math.floor(bw/GW));dpr=window.devicePixelRatio||1;
+// sur grand écran, la carte laisse la place aux commandes placées dessous (vues, légende, 3D/plan, rotation)
+function mapRoom(){if(window.innerWidth<=940)return 1e9;const top=$("mapbox").getBoundingClientRect().top+window.scrollY;return Math.max(320,window.innerHeight-top-118)}
+function resize(){const bw=$("mapbox").clientWidth,room=mapRoom();ts=Math.max(6,Math.min(Math.floor(bw/GW),Math.floor(room/GH)));dpr=window.devicePixelRatio||1;
   cv.style.width=ts*GW+"px";cv.style.height=ts*GH+"px";cv.width=base.width=Math.round(ts*GW*dpr);cv.height=base.height=Math.round(ts*GH*dpr);baseDirty=true;
-  IW=Math.max(280,$("mapbox").clientWidth);IH=Math.round(Math.min(IW*0.68,640));iso.style.height=IH+"px";iso.width=Math.round(IW*dpr);iso.height=Math.round(IH*dpr);fit();isoDirty=true;
-  const hc=$("hydro");hc.width=Math.round(hc.clientWidth*dpr);hc.height=Math.round(190*dpr)}
+  IW=Math.max(280,$("mapbox").clientWidth);IH=Math.round(Math.min(IW*0.68,640,room));iso.style.height=IH+"px";iso.width=Math.round(IW*dpr);iso.height=Math.round(IH*dpr);fit();isoDirty=true;
+  const hc=$("hydro");hc.width=Math.round(hc.clientWidth*dpr);hc.height=Math.round(190*dpr);const nc=$("ncurve");nc.width=Math.round(nc.clientWidth*dpr);nc.height=Math.round(70*dpr)}
 function drawBase(){const c=bctx;c.setTransform(dpr,0,0,dpr,0,0);
   for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const i=y*GW+x,px=x*ts,py=y*ts;
     if(sea[i]){c.fillStyle="rgb(74,128,172)";c.fillRect(px,py,ts+.5,ts+.5);continue}
@@ -375,7 +615,7 @@ function drawBase(){const c=bctx;c.setTransform(dpr,0,0,dpr,0,0);
     c.fillRect(px,py,ts+.5,ts+.5);
     if(ts>=10){const k=cov[i],u=ts/8;
       if(k===0){c.fillStyle="rgba(28,66,44,.6)";c.beginPath();c.arc(px+u*2.5,py+u*3,u*1.4,0,7);c.arc(px+u*5.6,py+u*5.3,u*1.6,0,7);c.fill()}
-      else if(k===2){c.fillStyle="rgba(120,96,30,.45)";c.fillRect(px+u,py+u*2.4,ts-2*u,u*.7);c.fillRect(px+u,py+u*5,ts-2*u,u*.7)}
+      else if(k===2){if(s.soilv[i]){c.fillStyle="rgba(80,140,50,.6)";c.fillRect(px+u,py+u*1.2,ts-2*u,u*.6);c.fillRect(px+u,py+u*3.7,ts-2*u,u*.6);c.fillRect(px+u,py+u*6.2,ts-2*u,u*.6)}c.fillStyle="rgba(120,96,30,.45)";c.fillRect(px+u,py+u*2.4,ts-2*u,u*.7);c.fillRect(px+u,py+u*5,ts-2*u,u*.7)}
       else if(k===4){c.fillStyle="rgba(70,66,76,.75)";c.fillRect(px+u,py+u,u*2.4,u*2.4);c.fillRect(px+u*4.4,py+u*1.2,u*2.4,u*2);c.fillRect(px+u*1.4,py+u*4.4,u*2,u*2.4);c.fillRect(px+u*4.4,py+u*4.2,u*2.6,u*2.6)}
       else if(k===5){c.fillStyle="rgba(30,80,90,.6)";c.fillRect(px+u*2,py+u*2,u*.7,u*2);c.fillRect(px+u*5,py+u*4,u*.7,u*2);c.fillRect(px+u*3.5,py+u*5,u*.7,u*1.6)}
       else if(k===3){c.fillStyle="rgba(110,80,50,.4)";c.fillRect(px+u*2,py+u*3,u,u);c.fillRect(px+u*5,py+u*5,u,u)}}
@@ -393,7 +633,7 @@ const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").m
 function draw(){ if(baseDirty)drawBase(); const c=cx2;
   c.setTransform(1,0,0,1,0,0);c.drawImage(base,0,0);c.setTransform(dpr,0,0,dpr,0,0);
   for(let y=0;y<GH-2;y++)for(let x=0;x<GW;x++){const i=y*GW+x,px=x*ts,py=y*ts;
-    if(view==="sol"){const k=S[i]/C[cov[i]].cap;c.fillStyle=k<.5?mix([206,160,84],[118,156,92],k*2):mix([118,156,92],[44,96,170],(k-.5)*2);c.fillRect(px,py,ts+.5,ts+.5)}
+    if(view==="sol"){c.fillStyle=roomCol(i);c.fillRect(px,py,ts+.5,ts+.5)}
     else if(view==="nappe"){const k=G[i]/GMAX;c.fillStyle=mix([226,208,170],[30,78,150],k);c.fillRect(px,py,ts+.5,ts+.5)}
     const w=W[i];
     if(view==="vit"){c.fillStyle="rgba(18,26,28,.62)";c.fillRect(px,py,ts+.5,ts+.5);
@@ -422,6 +662,7 @@ function draw(){ if(baseDirty)drawBase(); const c=cx2;
   else if(hover>=0){c.strokeStyle="#fff";c.lineWidth=1.5;const r=tool==="pump"?3:(brush&&tool!=="inspect"?1:0);
     if(tool==="pump")c.setLineDash([4,3]);
     c.strokeRect((hover%GW-r)*ts+.5,((hover/GW|0)-r)*ts+.5,ts*(2*r+1)-1,ts*(2*r+1)-1);c.setLineDash([])}
+  if(pin>=0){c.strokeStyle="#f2c230";c.lineWidth=2.5;c.strokeRect((pin%GW)*ts+1,((pin/GW|0))*ts+1,ts-2,ts-2)}
 }
 
 // traceurs : ils avancent à la vitesse de l'eau de leur case, dans le sens de la plus grande pente de la surface de l'eau
@@ -489,7 +730,8 @@ function drawCover(k,i,x,y,z){const S=cam.S, det=S>=9;
   else if(k===1&&det){GX.strokeStyle="#5f8c42";GX.lineWidth=Math.max(1,S*0.035);GX.beginPath();
     for(let t=0;t<4;t++){P(x+0.15+0.7*hash(i,t),y+0.15+0.7*hash(i,t+9),z);GX.moveTo(_x-0.04*S,_y-0.08*S*vf);GX.lineTo(_x,_y);GX.lineTo(_x+0.04*S,_y-0.08*S*vf)}GX.stroke();
     if(hash(i,30)<.45){P(x+0.2+0.6*hash(i,31),y+0.2+0.6*hash(i,32),z);GX.fillStyle=hash(i,33)<.5?"#f4e58a":"#ffffff";GX.beginPath();GX.arc(_x,_y-0.03*S,Math.max(1,S*0.025),0,7);GX.fill()}}
-  else if(k===2){for(let r=0.22;r<0.9;r+=0.28)line(x+0.1,y+r,x+0.9,y+r,z,"#a37f2a",Math.max(1,S*0.07));
+  else if(k===2){if(s.soilv[i]){for(let r=0.08;r<0.95;r+=0.28)line(x+0.08,y+r,x+0.92,y+r,z,"#6f9a3c",Math.max(1,S*0.1))}
+    for(let r=0.22;r<0.9;r+=0.28)line(x+0.1,y+r,x+0.9,y+r,z,"#a37f2a",Math.max(1,S*0.07));
     if(det){GX.fillStyle="#d9b64a";for(let t=0;t<3;t++){P(x+0.2+0.6*hash(i,t),y+0.36+0.28*(t%2),z);GX.fillRect(_x-S*0.02,_y-S*0.06*vf,S*0.04,S*0.06*vf)}}}
   else if(k===3&&det){GX.fillStyle="#8a7058";for(let t=0;t<2;t++){P(x+0.2+0.6*hash(i,t),y+0.2+0.6*hash(i,t+5),z);GX.beginPath();GX.ellipse(_x,_y,S*0.05,S*0.035*sph,0,0,7);GX.fill()}
     GX.strokeStyle="#8f6d4d";GX.lineWidth=1;GX.beginPath();P(x+0.25,y+0.6,z);GX.moveTo(_x,_y);P(x+0.45,y+0.5,z);GX.lineTo(_x,_y);P(x+0.6,y+0.72,z);GX.lineTo(_x,_y);GX.stroke()}
@@ -518,7 +760,7 @@ function drawCap(x,y,z){const S=cam.S;box(x+0.3,y+0.3,x+0.7,y+0.7,z,z+0.14,[240,
   GX.beginPath();GX.moveTo(_x,cy+r);GX.lineTo(_x,_y);GX.stroke()}
 const COVCOL=[[96,140,88],[156,186,104],[222,196,112],[190,154,112],[178,176,180],[92,146,134]];
 function topColor(i){const w=W[i];
-  if(view==="sol"){const k=S[i]/C[cov[i]].cap;return k<.5?mix([206,160,84],[118,156,92],k*2):mix([118,156,92],[44,96,170],(k-.5)*2)}
+  if(view==="sol")return roomCol(i)
   if(view==="nappe")return mix([226,208,170],[30,78,150],G0(i));
   if(view==="vit"){if(w>0.5&&V[i]>0.002){const k=Math.max(0,Math.min(1,(Math.log10(V[i])+2.3)/2.5));return k<.5?mix([255,240,170],[244,150,50],k*2):mix([244,150,50],[200,30,60],(k-.5)*2)}return rgb(COVCOL[cov[i]],0.42*LIT[i])}
   if(view==="qual"){if(w>0.5){const k=Math.min(1,s.L[i]/w/120);return k<.5?mix([96,170,230],[176,160,70],k*2):mix([176,160,70],[120,44,30],(k-.5)*2)}return rgb(COVCOL[cov[i]],0.45*LIT[i])}
@@ -567,6 +809,7 @@ function render3d(){ if(litDirty)computeLit(); setCam(); sortOrder();
   else if(hover>=0){const r=tool==="pump"?3:(brush&&tool!=="inspect"?1:0),hx=hover%GW,hy=hover/GW|0;GX.strokeStyle="#fff";GX.lineWidth=1.6;
     for(let yy=hy-r;yy<=hy+r;yy++)for(let xx=hx-r;xx<=hx+r;xx++){if(xx<0||yy<0||xx>=GW||yy>=GH-2)continue;const o=(yy*GW+xx)*4;
       quad(QX[o],QY[o],QX[o+1],QY[o+1],QX[o+2],QY[o+2],QX[o+3],QY[o+3]);GX.stroke()}}
+  if(pin>=0){const o=pin*4;GX.strokeStyle="#f2c230";GX.lineWidth=Math.max(2,cam.S*0.1);quad(QX[o],QY[o],QX[o+1],QY[o+1],QX[o+2],QY[o+2],QX[o+3],QY[o+3]);GX.stroke()}
   if(view==="vit"&&!reduce)drawParts(GX,(x,y)=>{const i=Math.min(GH-3,y|0)*GW+Math.min(GW-1,x|0);P(x,y,zt(i)+0.01);return[_x,_y]});
   if(st.rain.left>0&&!reduce&&phase!=="prep"&&view!=="vit"){GX.strokeStyle="rgba(120,150,190,.45)";GX.lineWidth=1;GX.beginPath();
     const n=Math.min(320,st.rain.int*7);for(let k=0;k<n;k++){const x=Math.random()*IW,y=Math.random()*IH;GX.moveTo(x,y);GX.lineTo(x-3,y+9)}GX.stroke()}
@@ -583,7 +826,9 @@ function readTheme(){css3.bg=css("--bg")||css3.bg;css3.panel=css("--panel")||css
 let drag=null; const touches=new Map();
 function zoomTo(S2){const k=Math.max(cam.fitS*0.7,Math.min(cam.fitS*6,S2))/cam.S;cam.S*=k;cam.px*=k;cam.py*=k;cam.auto=false;isoDirty=true}
 iso.addEventListener("contextmenu",e=>e.preventDefault());
-iso.addEventListener("pointerdown",e=>{try{iso.setPointerCapture(e.pointerId)}catch(_){ } touches.set(e.pointerId,[e.clientX,e.clientY]);
+let downPt=null;
+iso.addEventListener("click",e=>{if(tool!=="inspect"||e.button!==0||e.shiftKey||!downPt||Math.hypot(e.clientX-downPt[0],e.clientY-downPt[1])>6)return;openProbe(pick3(e))});
+iso.addEventListener("pointerdown",e=>{try{iso.setPointerCapture(e.pointerId)}catch(_){ } touches.set(e.pointerId,[e.clientX,e.clientY]);downPt=touches.size===1?[e.clientX,e.clientY]:null;
   if(touches.size===2){const p=[...touches.values()];drag={mode:"pinch",d0:Math.hypot(p[0][0]-p[1][0],p[0][1]-p[1][1]),S0:cam.S};painting=false;return}
   hover=pick3(e);isoDirty=true;
   if(tool==="inspect"||e.button!==0||e.shiftKey)drag={mode:(e.button===2||e.shiftKey)?"pan":"orbit",x:e.clientX,y:e.clientY};
@@ -632,17 +877,18 @@ function buildLegend(){const lgc=$("lgcov");lgc.innerHTML="";
     card.appendChild(iconCanvas((block,x,y)=>{block(rgb(COVCOL[k],1));drawCover(k,k*37+5,x,y,0)}));
     const tx=document.createElement("div");tx.className="lg-tx";
     tx.innerHTML="<b>"+c.name+"</b><p>"+LGD[k]+"</p>";card.appendChild(tx);
-    const dl=document.createElement("dl");dl.innerHTML=bars(c,k).map(b=>"<dt>"+b[0]+"</dt><dd><span class=\"lg-bar\"><i style=\"width:"+Math.round(Math.max(0.04,Math.min(1,b[1]))*100)+"%\"></i></span><em>"+b[2]+"</em></dd>").join("");card.appendChild(dl);card.addEventListener("click",()=>{const ok=[...tb.querySelectorAll("button")].some(b=>b.dataset.tool===card.dataset.tool);if(ok)setTool(card.dataset.tool)});lgc.appendChild(card)});
+    const dl=document.createElement("dl");dl.innerHTML=bars(c,k).map(b=>"<dt>"+b[0]+"</dt><dd><span class=\"lg-bar\"><i style=\"width:"+Math.round(Math.max(0.04,Math.min(1,b[1]))*100)+"%\"></i></span><em>"+b[2]+"</em></dd>").join("");card.appendChild(dl);card.addEventListener("click",()=>{const ok=[...tb.querySelectorAll("button")].some(b=>b.dataset.tool===card.dataset.tool);if(ok){setTool(card.dataset.tool);closeModal("legendModal")}});lgc.appendChild(card)});
   const ex=$("lgextra");ex.innerHTML="";
   const items=[
     ["Rivière","Son lit draine la nappe : c'est ce qui la fait couler sans pluie.",(b,x,y)=>{b(rgb(COVCOL[1],1));P(x+0.32,y,0);const a=[_x,_y];P(x+0.68,y,0);const c2=[_x,_y];P(x+0.68,y+1,0);const d=[_x,_y];P(x+0.32,y+1,0);quad(a[0],a[1],c2[0],c2[1],d[0],d[1],_x,_y);GX.fillStyle="rgb(40,112,190)";GX.fill()}],
     ["Mer","Toute l'eau qui ruisselle ou s'écoule finit ici.",(b)=>b("rgb(70,126,172)",0,[40,86,128])],
-    ["Haies et méandres","Freinent l'eau et retiennent une partie de la pollution. Dans un champ, une haie prend un dixième de la surface, mais les champs voisins gagnent 5 à 8 % de récolte.",(b,x,y)=>{b(rgb(COVCOL[2],1));drawCover(2,3,x,y,0);drawFr(1,false,x,y,0)}],
+    ["Haies et méandres","Freinent l'eau et retiennent une partie de la pollution. Dans un champ, une haie prend un dixième de la surface, mais elle abrite les champs voisins du vent : ils évaporent 10 % de moins et gagnent 5 à 8 % de récolte.",(b,x,y)=>{b(rgb(COVCOL[2],1));drawCover(2,3,x,y,0);drawFr(1,false,x,y,0)}],
     ["Fossés et lit rectifié","Accélèrent l'eau vers l'aval.",(b,x,y)=>{b(rgb(COVCOL[2],1));drawCover(2,3,x,y,0);drawFr(2,false,x,y,0)}],
     ["Barrage plein","Posé d'un clic en travers de la vallée : retient toute l'eau venue de l'amont jusqu'à déborder, et noie les terres derrière lui.",(b,x,y)=>{b("rgb(176,174,166)",0.14,[150,150,146]);box(x,y+0.3,x+1,y+0.7,0.14,0.3,[206,203,194],"#a8a59c")}],
     ["Barrage écrêteur","Un pertuis à sa base laisse passer le débit normal : la retenue ne se remplit qu'en crue, puis se vide.",(b,x,y)=>{b("rgb(176,174,166)",0.14,[150,150,146]);box(x,y+0.3,x+0.36,y+0.7,0.14,0.3,[206,203,194],"#a8a59c");box(x+0.36,y+0.3,x+0.64,y+0.7,0.23,0.3,[206,203,194],"#a8a59c");box(x+0.64,y+0.3,x+1,y+0.7,0.14,0.3,[206,203,194],"#a8a59c")}],
     ["Remblai","Terrain rehaussé de 2 m, case par case : pour une levée le long d'une rive.",(b)=>b(rgb(COVCOL[1],1),0.14,[150,118,84])],
     ["Creux","Terrain abaissé de 2 m : recueille l'eau qui passe.",(b,x,y)=>{b(rgb(COVCOL[3],1));P(x+.5,y+.5,0);GX.fillStyle="rgba(40,112,190,.75)";GX.beginPath();GX.ellipse(_x,_y,cam.S*0.3,cam.S*0.3*sph,0,0,7);GX.fill()}],
+    ["Sol vivant","Couverts et matière organique sur une culture : le sol infiltre mieux et garde 20 mm d'eau de plus.",(b,x,y)=>{b(rgb(COVCOL[2],1));for(let r=0.08;r<0.95;r+=0.28)line(x+0.08,y+r,x+0.92,y+r,0,"#6f9a3c",3);drawCover(2,3,x,y,0)}],
     ["Pompe","Irrigue les cultures à 3 cases à la ronde.",(b,x,y)=>{b(rgb(COVCOL[2],1));drawPump(x,y,0)}],
     ["Réserve","Bassin bâché rempli en pompant la nappe, qui irrigue à 6 cases à la ronde. Isolé du sol, il s'évapore et son eau se concentre.",(b,x,y)=>{b(rgb(COVCOL[2],1));box(x+0.03,y+0.03,x+0.97,y+0.97,0,0.24,[176,168,150],"rgb(52,120,196)")}],
     ["Captage","Prise d'eau potable de la ville dans la rivière.",(b,x,y)=>{b(rgb(COVCOL[1],1));drawCap(x,y,0)}],
@@ -707,18 +953,19 @@ hydro:`<svg viewBox="0 0 600 230" role="img" aria-label="Lire un hydrogramme">${
  <text x="140" y="34" ${TXT}>pluie</text><text x="214" y="96" ${TXT}>pic de référence</text><text x="266" y="116" ${TXT}>votre pic : plus bas, plus tard</text>
  <text x="410" y="152" ${TXT}>débit de base</text><text x="56" y="218" style="font:400 12px var(--mono);fill:var(--muted)">temps →</text></svg>`};
 const TUTO=[
- {ill:"cycle",t:"Bienvenue dans Goutte à goutte",b:"<p>Vous allez aménager une vallée et suivre ce que devient chaque goutte de pluie : celle qui entre dans le sol, celle qui file vers la rivière, celle qui remonte vers le ciel.</p><p>Quelques pages pour les notions de base, puis une visite de l'écran. Vous pouvez fermer à tout moment et revenir avec le bouton « Tutoriel ».</p>"},
+ {ill:"cycle",t:"Bienvenue dans Goutte à goutte",b:"<p>Vous allez aménager une vallée et suivre ce que devient chaque goutte de pluie : celle qui entre dans le sol, celle qui file vers la rivière, celle qui remonte vers le ciel.</p><p>Quelques pages pour les notions de base, puis une visite de l'écran. Vous pouvez fermer à tout moment et revenir avec le bouton « Tutoriel ».</p><p>Goutte à goutte est un outil pédagogique : il fait comprendre des mécanismes, il ne prédit pas ce qui se passerait sur un vrai territoire. Le bouton « Jeu ou réalité ? » explique pourquoi.</p>"},
  {ill:"cycle",t:"Le cycle de l'eau",b:"<p>L'eau ne se perd pas, elle circule. La mer et les plantes renvoient de l'eau vers le ciel (<b>évaporation</b>, <b>transpiration</b>). Elle retombe en <b>pluie</b>.</p><p>Au sol, elle s'<b>infiltre</b> ou elle <b>ruisselle</b>. L'eau infiltrée peut rejoindre la <b>nappe</b>, une réserve souterraine qui s'écoule lentement vers la rivière et la mer.</p>"},
  {ill:"infil",t:"Infiltrer ou ruisseler",b:"<p>C'est le choix qui se joue à chaque averse. Un sol couvert et poreux (forêt, prairie) boit la pluie et freine l'eau. Un sol nu, tassé ou bétonné la laisse filer en surface, vite.</p><p>Même le meilleur sol finit par être plein : après plusieurs jours de pluie, tout ruisselle.</p>"},
  {ill:"bassin",t:"Le bassin versant",b:"<p>Toute la pluie qui tombe entre les lignes de crête finit dans la même rivière et sort par le même point, l'<b>exutoire</b>. C'est le bassin versant.</p><p>Conséquence : ce qu'on fait en <b>amont</b> se paie ou se gagne en <b>aval</b>. Un champ, une ville ou une haie en haut de la vallée change la crue en bas.</p>"},
  {ill:"nappe",t:"La nappe fait couler la rivière en été",b:"<p>L'eau infiltrée descend lentement vers la nappe. La nappe se vide à son tour dans la rivière, jour après jour. C'est pour cela qu'une rivière coule encore après des semaines sans pluie.</p><p>L'eau qui a ruisselé en hiver, elle, est déjà partie en mer : elle manquera en été.</p>"},
  {ill:"hydro",t:"Lire l'hydrogramme",b:"<p>C'est le tableau de bord de la rivière. En haut, la pluie ; en bas, le débit à l'arrivée en mer. Une crue apparaît comme un <b>pic</b> : plus il est haut et proche de la pluie, plus elle est brutale.</p><p>En pointillé, la <b>référence</b> : la même météo sans vos aménagements. Votre but est souvent d'écraser ou de retarder le pic, ou de garder un débit en été.</p>"},
+ {sel:"#burger",t:"Comment jouer · le menu",b:"<p>Le bouton ☰ ouvre le menu : la liste des missions avec votre progression, le bac à sable, la légende des terrains, ce que montrent les vues, ce tutoriel et la page « Jeu ou réalité ? ».</p>"},
  {sel:"#mcard",t:"Comment jouer · la mission",b:"<p>Chaque mission pose un enjeu réel : crue, sécheresse, pollution, partage de l'eau. Lisez les <b>objectifs</b>, la <b>météo imposée</b> et votre <b>budget</b> en crédits. « Un indice » donne une piste si vous bloquez.</p>"},
  {sel:"#tools",t:"Comment jouer · aménager",b:"<p>Choisissez un aménagement, puis peignez sur la carte. Chacun a un coût, affiché sur son bouton ; le budget se met à jour à chaque case. Le pinceau « 3 × 3 » couvre neuf cases d'un coup. Le <b>barrage</b> se pose d'un seul clic dans le creux d'une vallée : il s'oriente tout seul en travers de l'écoulement, et l'aperçu montre la zone qu'il noiera.</p><p>Repassez sur une case avec un autre outil pour la changer, ou utilisez « Revenir au terrain d'origine ».</p>"},
- {sel:"#mapbox",t:"Comment jouer · la carte",b:"<p>Avec l'outil « Sonder », faites glisser pour tourner autour de la vallée ; molette ou pincement pour zoomer ; clic droit ou Maj pour déplacer. Survoler une case affiche son état dans la sonde, à droite.</p><p>La vue « Plan », vue de dessus, est plus pratique pour peindre case par case.</p>"},
- {sel:"#legendbox",t:"Comment jouer · la légende",b:"<p>Sous la carte, chaque terrain a sa fiche : ce qu'il fait, et cinq barres pour le comparer aux autres. Un clic sur une fiche la prend comme outil.</p>"},
+ {sel:"#mapbox",t:"Comment jouer · la carte",b:"<p>Avec l'outil « Sonder », faites glisser pour tourner autour de la vallée ; molette ou pincement pour zoomer ; clic droit ou Maj pour déplacer. Un clic sur une case ouvre sa fiche sur le côté droit, sans cacher le terrain.</p><p>La vue « Plan », vue de dessus, est plus pratique pour peindre case par case.</p>"},
+ {sel:"#openLegend",t:"Comment jouer · la légende",b:"<p>Le bouton « Légende des terrains », sous la carte, ouvre une fiche par terrain : ce qu'il fait, et cinq barres pour le comparer aux autres. Un clic sur une fiche la prend comme outil.</p>"},
  {sel:"#mact",t:"Comment jouer · lancer et comparer",b:"<p>Quand votre terrain est prêt, lancez la simulation. La météo se déroule, accélérez si besoin. À la fin, chaque objectif est vérifié face à la référence.</p><p>Réussi ou non, vous pouvez modifier et réessayer : la courbe de votre essai précédent reste affichée pour comparer.</p>"},
- {sel:"#viewbar",t:"Comment jouer · les vues",b:"<p>Changez de regard sur la vallée : <b>humidité du sol</b>, <b>nappe</b>, <b>vitesse</b> de l'eau avec des traceurs, <b>qualité</b> de l'eau. Elles aident à comprendre pourquoi un aménagement marche ou non.</p>"},
+ {sel:"#viewsel",t:"Comment jouer · les vues",b:"<p>Changez de regard sur la vallée : <b>place pour la pluie</b> (où l'orage ruissellera), <b>nappe</b>, <b>vitesse</b> de l'eau avec des traceurs, <b>qualité</b> de l'eau. Elles aident à comprendre pourquoi un aménagement marche ou non.</p>"},
  {ill:"bassin",t:"À vous de jouer",b:"<p>La première mission vous demande de replanter des versants mis à nu pour calmer un orage. Il n'y a pas de piège : essayez, regardez, recommencez.</p>",end:true}];
 let tk=0;
 function tutoShow(k){tk=Math.max(0,Math.min(TUTO.length-1,k));const st0=TUTO[tk],box=$("tuto");box.hidden=false;
@@ -730,7 +977,7 @@ function tutoShow(k){tk=Math.max(0,Math.min(TUTO.length-1,k));const st0=TUTO[tk]
   {const tt=st0.t.replace(/^Comment jouer · /,"");$("tutoTitle").textContent=tt.charAt(0).toUpperCase()+tt.slice(1)}$("tutoBody").innerHTML=st0.b;
   $("tutoPrev").disabled=tk===0;$("tutoNext").textContent=st0.end?"Commencer la mission 1":"Suivant";
   $("tutoDots").innerHTML=TUTO.map((_,j)=>'<i class="'+(j===tk?"on":"")+'"></i>').join("");$("tutoNext").focus({preventScroll:true})}
-function tutoClose(){$("tuto").hidden=true;document.querySelectorAll(".tuto-hl").forEach(e=>e.classList.remove("tuto-hl"));try{localStorage.setItem("gag-tuto","1")}catch(e){}}
+function tutoClose(){$("tuto").hidden=true;document.querySelectorAll(".tuto-hl").forEach(e=>e.classList.remove("tuto-hl"));try{$("tutoOff").checked?localStorage.setItem("gag-tuto-off","1"):localStorage.removeItem("gag-tuto-off")}catch(e){}}
 $("tutoNext").addEventListener("click",()=>{if(TUTO[tk].end){tutoClose();if(!(mode==="mission"&&mi===0))loadMission(0)}else tutoShow(tk+1)});
 $("tutoPrev").addEventListener("click",()=>tutoShow(tk-1));$("tutoSkip").addEventListener("click",tutoClose);
 document.addEventListener("keydown",e=>{if($("tuto").hidden)return;if(e.key==="Escape")tutoClose();else if(e.key==="ArrowRight")$("tutoNext").click();else if(e.key==="ArrowLeft"&&tk>0)tutoShow(tk-1)});
@@ -747,13 +994,13 @@ function drawHydro(){const c=$("hydro"),g=c.getContext("2d"),w=c.width/dpr,hh=c.
   const top=[1,2,5,10,20,50,100,150,200,300,500,1000,2000].find(v=>v>=mq)||mq;
   const Y=q=>y0-(sq?Math.sqrt(Math.min(q,top)/top):Math.min(q,top)/top)*qh;
   g.font="10px "+css("--mono");g.lineWidth=1;
-  if(mis&&M().script.lowFrom>0){const xs=L+M().script.lowFrom*48*dx;g.globalAlpha=.1;g.fillStyle=bis;g.fillRect(xs,y0-qh,L+pw-xs,qh);g.globalAlpha=1;g.fillStyle=bis;g.textAlign="right";g.fillText("débit d'été mesuré ici",L+pw-3,y0-qh+11)}
+  if(mis&&SCR().lowFrom>0){const ws=SCR().low||[[SCR().lowFrom,SCR().days]];g.globalAlpha=.1;g.fillStyle=bis;for(const w of ws)g.fillRect(L+w[0]*48*dx,y0-qh,(w[1]-w[0])*48*dx,qh);g.globalAlpha=1;g.fillStyle=bis;const xs=L+ws[ws.length-1][0]*48*dx;g.textAlign="right";g.fillText("débit d'été mesuré ici",L+pw-3,y0-qh+11)}
   g.strokeStyle=line;g.beginPath();g.moveTo(L,T);g.lineTo(L,y0);g.lineTo(L+pw,y0);g.moveTo(L,y0-qh);g.lineTo(L+pw,y0-qh);
   if(sq){g.moveTo(L,Y(top/4));g.lineTo(L+pw,Y(top/4))}g.stroke();
   g.fillStyle=ink;g.textAlign="right";g.fillText(top,L-4,y0-qh+9);g.fillText("0",L-4,y0);g.fillText("60",L-4,T+rh+2);g.fillText("0",L-4,T+9);
   if(sq)g.fillText(fx(top/4),L-4,Y(top/4)+3);
-  g.textAlign="left";g.fillText(mis?"jour 0":"il y a 9 jours",L,hh-4);g.textAlign="right";g.fillText(mis?"jour "+M().script.days:"maintenant",L+pw,hh-4);
-  const lp=mis&&M().script.loop, rs=mis&&!lp?ctx.baseHist:cur, xr=mis?L:L+pw-cur.length*dx;
+  g.textAlign="left";g.fillText(mis?"jour 0":"il y a 9 jours",L,hh-4);g.textAlign="right";g.fillText(mis?"jour "+SCR().days:"maintenant",L+pw,hh-4);
+  const lp=mis&&SCR().loop, rs=mis&&!lp?ctx.baseHist:cur, xr=mis?L:L+pw-cur.length*dx;
   if(lp){g.fillStyle=line;for(let k=0;k<ctx.baseHist.length;k++){const r=Math.min(60,ctx.baseHist[k].r);if(r>0)g.fillRect(L+k*dx,T,Math.max(1,dx+.3),r/60*rh)}}
   g.fillStyle=rn;for(let k=0;k<rs.length;k++){const r=Math.min(60,rs[k].r);if(r>0)g.fillRect(xr+k*dx,T,Math.max(1,dx+.3),r/60*rh*(lp?.7:1))}
   const path=(H,x0)=>{g.beginPath();for(let k=0;k<H.length;k++){const X=x0+(k+.5)*dx,Yv=Y(H[k].q);k?g.lineTo(X,Yv):g.moveTo(X,Yv)}};
@@ -767,8 +1014,17 @@ function drawHydro(){const c=$("hydro"),g=c.getContext("2d"),w=c.width/dpr,hh=c.
     path(cur,x0);g.strokeStyle=wat;g.lineWidth=1.8;g.stroke();
     g.fillStyle=wat;g.beginPath();g.arc(x0+(n-.5)*dx,Y(cur[n-1].q),2.8,0,7);g.fill()}
 }
+function drawNappe(){const c=$("ncurve"),g=c.getContext("2d"),w=c.width/dpr,hh=c.height/dpr;g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,w,hh);
+  const mis=mode==="mission"&&ctx&&ctx.baseHist,cur=st.hist,L=38,R=8,T=12,B=4,pw=w-L-R,ph=hh-T-B,total=mis?ctx.baseHist.length:432,dx=pw/total;
+  let lo=1,hi=0;const scan=H=>{for(const p of H)if(p.g!=null){lo=Math.min(lo,p.g);hi=Math.max(hi,p.g)}};scan(cur);if(mis)scan(ctx.baseHist);
+  if(hi<=lo){lo=0;hi=1}const pad=(hi-lo)*0.15+0.01;lo=Math.max(0,lo-pad);hi=Math.min(1,hi+pad);const Y=v=>T+ph-(v-lo)/(hi-lo)*ph;
+  g.font="10px "+css("--mono");g.fillStyle=css("--muted");g.textAlign="left";g.fillText("Nappe (remplissage moyen)",L,9);g.textAlign="right";g.fillText(Math.round(hi*100)+" %",L-4,T+8);g.fillText(Math.round(lo*100)+" %",L-4,T+ph);
+  g.strokeStyle=css("--line");g.lineWidth=1;g.beginPath();g.moveTo(L,T);g.lineTo(L,T+ph);g.lineTo(L+pw,T+ph);g.stroke();
+  const path=(H,x0)=>{g.beginPath();let st0=false;for(let k=0;k<H.length;k++){if(H[k].g==null)continue;const X=x0+(k+.5)*dx,Yv=Y(H[k].g);st0?g.lineTo(X,Yv):(g.moveTo(X,Yv),st0=true)}};
+  if(mis){g.setLineDash([4,3]);g.strokeStyle=css("--muted");g.lineWidth=1.2;path(ctx.baseHist,L);g.stroke();g.setLineDash([])}
+  if(cur.length>1){g.strokeStyle=css("--water");g.lineWidth=1.8;path(cur,mis?L:L+pw-cur.length*dx);g.stroke()}}
 function hydroStatic(){const mis=mode==="mission";
-  $("hkey").innerHTML='<span style="--c:var(--rain)">Pluie</span><span style="--c:var(--water)">Débit</span>'+(mis?'<span style="--c:var(--muted)">Référence sans aménagement</span>'+(lastHist?'<span style="--c:var(--bistre)">Essai précédent</span>':"")+(M().quality?'<span style="--c:var(--alert)">Pollution au captage (pointillé : référence)</span>':"")+(M().script.loop?'<span style="--c:var(--line)">Pluies de référence</span>':""):"");
+  $("hkey").innerHTML='<span style="--c:var(--rain)">Pluie</span><span style="--c:var(--water)">Débit</span>'+(mis?'<span style="--c:var(--muted)">Référence sans aménagement</span>'+(lastHist?'<span style="--c:var(--bistre)">Essai précédent</span>':"")+(M().quality?'<span style="--c:var(--alert)">Pollution au captage (pointillé : référence)</span>':"")+(SCR().loop?'<span style="--c:var(--line)">Pluies de référence</span>':""):"");
   $("hcap").textContent="Pluie en haut (mm/h), débit de la rivière à son arrivée en mer en bas (m³/s)."+(mis&&M().sqrt?" L'échelle des débits est resserrée vers le haut pour que les faibles débits d'été restent lisibles.":" Plus le pic est haut et proche de la pluie, plus la crue est brutale.")}
 
 /* ---------- panneaux ---------- */
@@ -776,8 +1032,8 @@ function updatePanels(){
   const m=st.m, d=(st.t/144|0)+1, hr=(st.t%144)/6|0;
   if(phase==="load")$("clock").textContent="Préparation du terrain…";
   else if(phase==="prep")$("clock").textContent="Préparation · la météo n'a pas commencé";
-  else if(phase==="done")$("clock").textContent="Fin de la simulation · "+M().script.days+" jours écoulés";
-  else $("clock").innerHTML="Jour "+d+(mode==="mission"?" sur "+M().script.days:"")+" · "+hr+" h · "+(st.rain.left>0?"<b>pluie "+Math.round(st.rain.int)+" mm/h</b>":"temps sec")+" · évaporation "+String(st.etpDay).replace(".",",")+" mm/j";
+  else if(phase==="done")$("clock").textContent="Fin de la simulation · "+SCR().days+" jours écoulés";
+  else $("clock").innerHTML="Jour "+d+(mode==="mission"?" sur "+SCR().days:"")+" · "+hr+" h · "+(st.rain.left>0?"<b>pluie "+Math.round(st.rain.int)+" mm/h</b>":"temps sec")+" · évaporation "+String(st.etpDay).replace(".",",")+" mm/j";
   let sw=0,ss=0,sc=0,sg=0;
   for(let i=0;i<N;i++){if(sea[i])continue;sw+=W[i];ss+=S[i];sc+=C[cov[i]].cap;sg+=G[i]}
   const stats=[["Débit actuel",fx(st.qNow)+" m³/s"]];
@@ -800,14 +1056,27 @@ function updatePanels(){
   $("ke").textContent="Évaporée "+Math.round(E)+" mm";$("kq").textContent="Partie en mer "+Math.round(Q)+" mm";$("ks").textContent="Stockée "+Math.round(St)+" mm";
   $("s1").textContent=fx(sw/st.nLand)+" mm";$("s2").textContent=Math.round(ss/st.nLand)+" mm · "+Math.round(ss/sc*100)+" %";$("m2").style.width=ss/sc*100+"%";
   $("s3").textContent=Math.round(sg/st.nLand)+" mm · "+Math.round(sg/st.nLand/GMAX*100)+" %";$("m3").style.width=sg/st.nLand/GMAX*100+"%";
-  if(hover>=0&&!sea[hover]){const i=hover,c=C[cov[i]];
-    $("probepos").textContent="case "+(i%GW)+","+(i/GW|0);
-    $("probe").innerHTML="<dt>Occupation</dt><dd>"+c.name+(dist[i]===0?" · lit de la rivière":"")+(pump[i]?" · pompe":"")+"</dd><dt>Altitude</dt><dd>"+fx(h[i])+" m</dd><dt>Lame d'eau en surface</dt><dd>"+(W[i]>=1000?fx(W[i]/1000)+" m":fx(W[i])+" mm")+"</dd><dt>Vitesse d'écoulement</dt><dd>"+(V[i]*100<1?"0":V[i]<1?Math.round(V[i]*100)+" cm/s":fx(V[i])+" m/s")+"</dd><dt>Écoulement</dt><dd>"+(s.fr[i]===1?"freiné":s.fr[i]===2?"accéléré":"naturel")+" · n = "+String(+s.nOf(i).toFixed(3)).replace(".",",")+"</dd><dt>Pollution de l'eau</dt><dd>"+(W[i]>0.5?Math.round(s.L[i]/W[i])+" mg/L":"–")+"</dd><dt>Sol rempli à</dt><dd>"+Math.round(S[i]/c.cap*100)+" % de "+c.cap+" mm</dd><dt>Nappe sous la surface</dt><dd>"+fx(DAQ*(1-G[i]/GMAX))+" m</dd>"}
+  if(pin>=0&&!$("probePop").hidden)fillProbe(false);
   if(mode==="mission"&&phase==="run")renderObjectives();
 }
+// fiche de la case sondée : caractéristiques du terrain et état en direct
+let pin=-1, pinCov=-1;
+function probeHTML(i){const c=C[cov[i]];return "<dt>Occupation</dt><dd>"+c.name+(dist[i]===0?" · lit de la rivière":"")+(pump[i]?" · pompe":"")+"</dd><dt>Altitude</dt><dd>"+fx(h[i])+" m</dd><dt>Lame d'eau en surface</dt><dd>"+(W[i]>=1000?fx(W[i]/1000)+" m":fx(W[i])+" mm")+"</dd><dt>Vitesse d'écoulement</dt><dd>"+(V[i]*100<1?"0":V[i]<1?Math.round(V[i]*100)+" cm/s":fx(V[i])+" m/s")+"</dd><dt>Écoulement</dt><dd>"+(s.fr[i]===1?"freiné":s.fr[i]===2?"accéléré":"naturel")+" · n = "+String(+s.nOf(i).toFixed(3)).replace(".",",")+"</dd><dt>Sol</dt><dd>"+(s.soilv[i]&&cov[i]===2?"vivant (+20 mm)":"ordinaire")+"</dd><dt>Pollution de l'eau</dt><dd>"+(W[i]>0.5?Math.round(s.L[i]/W[i])+" mg/L":"–")+"</dd><dt>Sol rempli à</dt><dd>"+Math.round(S[i]/c.cap*100)+" % de "+c.cap+" mm</dd><dt>Peut absorber en 2 h d'orage</dt><dd>"+(room2h(i)<0?"–":Math.round(room2h(i))+" mm")+"</dd><dt>Nappe sous la surface</dt><dd>"+fx(DAQ*(1-G[i]/GMAX))+" m</dd>"}
+function fillProbe(full){const i=pin;if(i<0||sea[i]){closeProbe();return}const k=cov[i],c=C[k];
+  if(full||k!==pinCov){pinCov=k;$("ppIcon").innerHTML="";$("ppIcon").appendChild(iconCanvas((block,x,y)=>{block(rgb(COVCOL[k],1));drawCover(k,k*37+5,x,y,0)}));
+    $("ppName").textContent=c.name+(s.res[i]?" · réserve":"");$("ppTxt").textContent=s.res[i]?"Réserve d'eau bâchée : isolée du sol, elle ne s'infiltre pas et ne recharge pas la nappe. Elle se remplit en pompant la nappe pendant la saison de remplissage, puis irrigue les cultures alentour.":LGD[k];
+    $("ppBars").innerHTML=bars(c,k).map(b=>"<dt>"+b[0]+"</dt><dd><span class=\"lg-bar\"><i style=\"width:"+Math.round(Math.max(0.04,Math.min(1,b[1]))*100)+"%\"></i></span><em>"+b[2]+"</em></dd>").join("")}
+  $("ppPos").textContent="case "+(i%GW)+","+(i/GW|0)+" · "+fx(h[i])+" m d'altitude";$("ppState").innerHTML=probeHTML(i)}
+function openProbe(i){if(i<0||sea[i])return;const was=$("probePop").hidden;pin=i;$("probePop").hidden=false;fillProbe(true);isoDirty=true;if(was)$("ppClose").focus({preventScroll:true})}
+function closeProbe(){$("probePop").hidden=true;pin=-1;pinCov=-1;isoDirty=true}
+$("ppClose").addEventListener("click",closeProbe);
+// place pour la pluie : ce qu'une case peut absorber en 2 heures d'orage (place libre du sol, vitesse d'infiltration qui baisse quand le sol se remplit)
+function room2h(i){if(s.res[i]||W[i]>200)return -1;const cap=s.capOf(i),k=S[i]/cap;let a=0,sv=S[i];for(let q=0;q<12;q++){const v=Math.min(s.capOf(i)-sv,(C[cov[i]].inf+(s.soilv[i]&&cov[i]===2?8:0))*s.DT*(1-0.8*sv/cap));if(v<=0)break;a+=v;sv+=v}return a}
+function roomCol(i){const a=room2h(i);if(a<0)return "rgb(128,136,140)";const k=Math.min(1,a/60);
+  return k<.35?mix([196,64,46],[232,190,84],k/.35):mix([232,190,84],[44,96,170],(k-.35)/.65)}
 function legText(){$("legend").textContent=view3d&&view==="terrain"?LEG.t3:LEG[view]}
 const LEG={t3:"Bleu : eau en surface, d'autant plus foncé que la lame est épaisse. Cadre rouge : ville inondée. Pastille orange : culture assoiffée. Une case fait 250 m de côté et le relief est exagéré pour rester lisible. La légende détaillée est sous la carte.",terrain:"Bleu : eau en surface, d'autant plus foncé que la lame est épaisse. Traits bruns : courbes de niveau tous les 5 m. Cadre rouge : ville inondée. Point orange : culture en manque d'eau. Pastille : pompe. Une case fait 250 m de côté.",
- sol:"Ocre : sol sec. Vert : sol à moitié rempli. Bleu : sol saturé, qui ne peut plus rien absorber et fait ruisseler toute nouvelle pluie.",
+ sol:"Ce que chaque case peut encore absorber pendant un orage de 2 heures, selon la place libre dans son sol et la vitesse à laquelle l'eau y entre. Rouge : presque rien, la pluie ruissellera. Jaune : une partie. Bleu : 60 mm ou plus, l'orage entre dans le sol. Gris : surface bâchée ou plan d'eau.",
  vit:"Du jaune pâle (quelques cm/s : l'eau s'attarde et peut s'infiltrer) au rouge (plus d'1 m/s : elle file vers l'aval). Les points blancs sont des traceurs emportés par le courant ; ils se lisent mieux en vitesse ×1. Zigzag vert : haie ou méandre. Trait clair : fossé ou lit rectifié.",
  qual:"Du bleu clair (eau propre) au brun foncé (eau très chargée en terre, engrais et pesticides). L'eau se charge en ruisselant sur les cultures, les sols nus et la ville ; elle se décharge en s'infiltrant ou en traversant prairies, forêts, haies et zones humides. Losange blanc : captage d'eau potable de la ville. Les chiffres sont un indice, pas une mesure réelle.",
  nappe:"Du sable (nappe à 15 m sous la surface) au bleu profond (nappe affleurante). La rivière draine la nappe là où elle est haute : c'est ce qui la fait couler sans pluie."};
@@ -828,8 +1097,11 @@ function setTool(id){tool=id;markLegend();isoDirty=true;preview=null;tb.querySel
     p.querySelectorAll("[data-damh]").forEach(b=>b.addEventListener("click",()=>{damH=+b.dataset.damh;p.querySelectorAll("[data-damh]").forEach(o=>o.setAttribute("aria-pressed",o===b));updPreview();isoDirty=true}));return}
   if(tl.cov!==undefined){const c=C[tl.cov];p.innerHTML="<span>infiltration <b>"+c.inf+" mm/h</b></span><span>réserve du sol <b>"+c.cap+" mm</b></span><span>rugosité <b>n = "+String(c.n).replace(".",",")+"</b></span><span>transpiration <b>× "+String(c.kc).replace(".",",")+"</b></span>"}else p.innerHTML=""}
 tb.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
-  if(mode==="mission"&&phase!=="prep"&&b.dataset.tool!=="inspect"){$("tooltext").textContent="La simulation est en cours ou terminée. Choisissez « Arrêter et modifier » ou « Modifier et réessayer » pour reprendre les aménagements.";return}
+  if(mode==="mission"&&(phase==="run"||phase==="done")&&b.dataset.tool!=="inspect"){backToPrep();toast("Simulation arrêtée : le terrain est revenu à l'état de préparation, vous pouvez l'aménager.")}
+  if(mode==="mission"&&phase==="load")return;
   setTool(b.dataset.tool)});
+// message bref sous la barre d'outils
+let toastT=0;function toast(msg){const el=$("toolmsg");el.textContent=msg;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,4500)}
 function group(attr,fn){document.querySelectorAll("["+attr+"]").forEach(b=>b.addEventListener("click",()=>{
   document.querySelectorAll("["+attr+"]").forEach(o=>o.setAttribute("aria-pressed",o===b));fn(b.getAttribute(attr))}))}
 function setSpeed(v){speed=v;document.querySelectorAll("[data-speed]").forEach(o=>o.setAttribute("aria-pressed",+o.dataset.speed===v))}
@@ -861,40 +1133,44 @@ function placeDam(i,H,ecr,quiet){const mis=mode==="mission";
   dams.push({tiles:p.line,prev,along:p.along,ori,oriTile:ecr?i:-1});p.line.forEach(j=>damMap[j]=dams.length);
   if(mis){const t2=tally();if(t2.cost>M().budget){const d=dams.pop();d.tiles.forEach((j,k)=>{h[j]=d.prev[k];damMap[j]=0});if(!quiet)flashBudget();return false}tal=t2;if(!quiet)renderObjectives()}
   syncOris();baseDirty=true;if(!quiet)updPreview();return true}
-function apply(i){ if(i<0||tool==="inspect")return; const mis=mode==="mission"; if(mis&&phase!=="prep")return;
+function apply(i){ if(i<0||tool==="inspect")return; const mis=mode==="mission"; if(mis&&phase!=="prep"){toast("La simulation est en cours ou terminée : choisissez « Arrêter et modifier » pour aménager.");return}
+  if(!$("probePop").hidden&&!sea[i]){pin=i;pinCov=-1}
   if(tool==="dam"){if(!stroke.dd){stroke.dd=1;placeDam(i,damH,damEcr)}return}
   const tl=TOOLS.find(x=>x.id===tool),r=(brush&&tool!=="pump")?1:0,x0=i%GW,y0=i/GW|0; let changed=false,refused=false;
   for(let y=y0-r;y<=y0+r;y++)for(let x=x0-r;x<=x0+r;x++){ if(x<0||y<0||x>=GW||y>=GH-2)continue; const j=y*GW+x;
     if(mis&&ctx.cov0[j]===4)continue;                       // la ville existante ne se déplace pas
-    const oc=cov[j],oh=h[j],op=pump[j],of=s.fr[j],orr=s.res[j];
-    if(tl.cov!==undefined){ if(oc===tl.cov)continue; cov[j]=tl.cov }
+    const oc=cov[j],oh=h[j],op=pump[j],of=s.fr[j],orr=s.res[j],osv=s.soilv[j];
+    if(tl.cov!==undefined){ if(oc===tl.cov)continue; cov[j]=tl.cov; if(tl.cov!==2)s.setSoil(j,0) }
+    else if(tool==="soil"){ if(oc!==2)continue; if(stroke.erase===undefined)stroke.erase=!!osv; const nv=stroke.erase?0:1; if(osv===nv)continue; s.setSoil(j,nv) }
     else if(tool==="res"){ if(oc===4||dist[j]===0)continue; if(stroke.erase===undefined)stroke.erase=!!orr; const nv=stroke.erase?0:1; if(orr===nv)continue; s.setRes(j,nv) }
     else if(tool==="slow"||tool==="fast"){ if(oc===4)continue; const val=tool==="slow"?1:2;
       if(stroke.erase===undefined)stroke.erase=(of===val);          // repasser sur une case aménagée efface
       const nv=stroke.erase?(mis&&ctx.fr0[j]!==val?ctx.fr0[j]:0):val; if(of===nv)continue; s.fr[j]=nv }
     else { if(stroke.has(j))continue; stroke.add(j);
       if(tool==="pump")s.setPump(j,!op); else h[j]=Math.max(0.5,Math.min(95,oh+(tool==="up"?2:-2))) }
-    if(mis){const t2=tally(); if(t2.cost>M().budget){cov[j]=oc;h[j]=oh;s.fr[j]=of;if(s.res[j]!==orr)s.setRes(j,orr);if(pump[j]!==op)s.setPump(j,op);refused=true;continue} tal=t2}
+    if(mis){const t2=tally(); if(t2.cost>M().budget){cov[j]=oc;h[j]=oh;s.fr[j]=of;if(s.res[j]!==orr)s.setRes(j,orr);s.setSoil(j,osv);if(pump[j]!==op)s.setPump(j,op);refused=true;continue} tal=t2}
     if(S[j]>C[cov[j]].cap)S[j]=C[cov[j]].cap; changed=true }
   if(changed){baseDirty=true;if(mis)renderObjectives()} if(refused)flashBudget() }
 cv.addEventListener("pointerdown",e=>{hover=tileAt(e);if(tool!=="inspect"){painting=true;stroke=new Set();try{cv.setPointerCapture(e.pointerId)}catch(_){ }apply(hover)}});
 cv.addEventListener("pointermove",e=>{const hv=tileAt(e);if(hv!==hover){hover=hv;updPreview()}if(painting)apply(hover)});
-cv.addEventListener("pointerup",()=>painting=false);cv.addEventListener("pointercancel",()=>painting=false);
+cv.addEventListener("pointerup",()=>painting=false);
+cv.addEventListener("click",e=>{if(tool==="inspect")openProbe(tileAt(e))});cv.addEventListener("pointercancel",()=>painting=false);
 cv.addEventListener("pointerleave",e=>{if(e.pointerType==="mouse"&&!painting)hover=-1});
 
 let frame=0;
 function loop(){
   stepped=0;
   if(mode==="sandbox"){ if(playing){for(let k=0;k<speed;k++)s.step();stepped=speed} }
-  else if(phase==="run"&&playing){ const end=M().script.days*144; for(let k=0;k<speed&&st.t<end;k++){s.step();stepped++} if(st.t>=end)finish() }
+  else if(phase==="run"&&playing){ const end=SCR().days*144; for(let k=0;k<speed&&st.t<end;k++){s.step();stepped++} if(st.t>=end)finish() }
   if(view3d&&baseDirty){litDirty=true;baseDirty=false;isoDirty=true}
   if(spin)spin(performance.now());
   if(phase!=="load"){ if(view3d){ if(isoDirty||stepped||frame%30===0){if(frame%60===0)readTheme();render3d()} } else draw();
-    if(frame%6===0){updatePanels();drawHydro();if(frame%60===0)hydroStatic()}} frame++; requestAnimationFrame(loop) }
+    if(frame%6===0){updatePanels();drawHydro();drawNappe();if(frame%60===0)hydroStatic()}} frame++; requestAnimationFrame(loop) }
 renderNav(); buildTools(); resize(); readTheme(); buildLegend(); setTool("inspect"); setMode3d(true); legText(); hydroStatic();
 window.addEventListener("resize",resize); if(document.fonts&&document.fonts.ready)document.fonts.ready.then(resize);
 loadMission(0); loop();
-let seen=false;try{seen=!!localStorage.getItem("gag-tuto")}catch(e){}
-if(!seen)setTimeout(()=>tutoShow(0),700);
+let tutoOff=false;try{tutoOff=!!localStorage.getItem("gag-tuto-off")}catch(e){}
+$("tutoOff").checked=tutoOff;
+if(!tutoOff)setTimeout(()=>tutoShow(0),700);   // le tutoriel s'ouvre à chaque démarrage, sauf si le joueur l'a désactivé
 })();
 </script>

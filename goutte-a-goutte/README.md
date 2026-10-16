@@ -6,9 +6,11 @@ Un jeu de simulation vu de dessus pour comprendre le cycle de l'eau et ses enjeu
 
 Public visé : tout public. Aucune connaissance préalable n'est nécessaire.
 
+> **Un outil pédagogique, pas un outil scientifique.** Goutte à goutte sert à comprendre comment l'eau circule dans un territoire et à discuter des choix d'aménagement. Ses chiffres sont des ordres de grandeur sur une vallée inventée, sans données mesurées ni calage : ils ne prédisent rien sur un bassin réel et ne doivent pas servir d'argument chiffré pour ou contre un projet. La page « Jeu ou réalité ? » du jeu, et la section [Limites à connaître](#limites-à-connaître) ci-dessous, détaillent les différences avec une vraie simulation hydrologique.
+
 ## Lancer le jeu
 
-Ouvrez [goutte-a-goutte.html](https://hagrou.github.io/bricolabo/goutte-a-goutte/goutte-a-goutte.html) dans un navigateur récent (Chrome, Firefox, Safari, Edge). Il n'y a rien à installer.
+Ouvrez `goutte-a-goutte.html` dans un navigateur récent (Chrome, Firefox, Safari, Edge). Il n'y a rien à installer.
 
 - Le fichier est autonome : tout le jeu tient dedans.
 - Il fonctionne hors connexion. Seules les polices d'écriture sont chargées depuis Internet ; sans connexion, le navigateur utilise ses polices par défaut.
@@ -16,6 +18,8 @@ Ouvrez [goutte-a-goutte.html](https://hagrou.github.io/bricolabo/goutte-a-goutte
 - Il s'adapte au téléphone, mais une souris et un grand écran sont plus confortables pour peindre la carte.
 
 ## Comment on joue
+
+Le bouton **☰**, en haut à gauche, ouvre le menu : la liste des missions avec la progression, le bac à sable, la légende des terrains, « Ce que montrent les vues », le tutoriel et la page « Jeu ou réalité ? ». La page **« Jeu ou réalité ? »** explique que l'objectif est pédagogique, ce qui est solide dans le modèle, et les différences notables avec une simulation réelle : données, calage, temps, espace, nappe, sols et plantes, qualité de l'eau, ouvrages, pluie recyclée, société et économie, incertitude. Quand toutes les missions sont réussies, une fenêtre de félicitations récapitule ce que le joueur a vu, une seule fois.
 
 Au premier lancement, un **tutoriel** de 13 pages s'ouvre. Les six premières présentent les notions de base avec un schéma chacune : le cycle de l'eau, infiltrer ou ruisseler, le bassin versant, la nappe qui fait couler la rivière en été, la lecture de l'hydrogramme. Les suivantes font la visite de l'écran en surlignant chaque zone : la fiche de mission, les outils, la carte 3D, la légende, le lancement, les vues. On le retrouve à tout moment avec le bouton « Tutoriel ».
 
@@ -40,13 +44,14 @@ Le **bac à sable** donne tous les outils sans budget ni objectif, avec une mét
 
 | Instrument | Ce qu'il montre |
 |---|---|
-| Légende des terrains | Sous la carte : une fiche par terrain avec son dessin, son rôle en une phrase et cinq barres comparatives (absorbe la pluie, garde l'eau dans le sol, freine l'écoulement, rend l'eau au ciel, salit l'eau). Un clic sur une fiche prend ce terrain comme outil. Suivent les aménagements et repères (rivière, mer, haies, fossés, barrage, remblai, creux, pompe, captage, ville inondée, culture assoiffée) |
+| Légende des terrains | Fenêtre ouverte par le bouton « Légende des terrains » à côté de la carte, ou depuis le menu :
 | Carte « Terrain et eau » | Occupation du sol, relief, eau en surface, ville inondée, cultures en manque d'eau |
-| Carte « Humidité du sol » | Remplissage de la réserve du sol, du sec au saturé |
+| Carte « Place pour la pluie » | Ce que chaque case peut encore absorber pendant un orage de 2 heures : place libre dans le sol et vitesse d'infiltration. Rouge, la pluie ruissellera ; bleu, elle entre dans le sol |
 | Carte « Nappe » | Profondeur de la nappe sous la surface |
 | Carte « Vitesse » | Vitesse de l'eau case par case, avec des traceurs emportés par le courant |
 | Carte « Qualité » | Charge polluante de l'eau, et position du captage d'eau potable |
 | Hydrogramme | Pluie et débit de la rivière à son arrivée en mer, avec la référence |
+| Courbe de la nappe | Sous l'hydrogramme : remplissage moyen de la nappe, avec la référence en pointillé |
 | Bilan | Part de la pluie évaporée, partie en mer ou stockée ; répartition entre surface, sol et nappe |
 | Sonde | État détaillé de la case survolée |
 | Schéma du cycle | En cycle fermé : jauge de l'atmosphère et flux entre mer, ciel et terres |
@@ -67,10 +72,11 @@ Le **bac à sable** donne tous les outils sans budget ni objectif, avec une mét
 | Creuser (−2 m) | Recueille le ruissellement, peut atteindre la nappe | S'évapore |
 | Haies et méandres | Freine l'eau sans changer le sol | Une rivière plus lente monte plus haut |
 | Fossés et lit rectifié | Accélère l'eau (bac à sable) | Concentre la crue à l'aval |
-| Réserve | Bassin bâché de 5 m, rempli en pompant la nappe pendant la saison de remplissage (tant qu'elle dépasse un seuil), qui irrigue les cultures à 6 cases à la ronde | Isolée du sol, elle ne recharge pas la nappe ; elle s'évapore, son eau se concentre et stagne au chaud ; 20 crédits par case |
+| Sol vivant | Sur une culture : couverts, matière organique ; le sol infiltre mieux (+8 mm/h) et garde 20 mm d'eau de plus | Effet modeste en été très sec ; 1 crédit par case |
+| Réserve | Bassin bâché de 5 m : une case vaut 6,25 ha et environ 310 000 m³, la taille d'une « méga-bassine » moyenne (Sainte-Soline en vaut deux). Elle se remplit en pompant la nappe pendant la saison de remplissage, tant qu'elle dépasse un seuil, puis irrigue les cultures à 6 cases à la ronde | Isolée du sol, elle ne recharge pas la nappe ; elle s'évapore, son eau se concentre et stagne au chaud ; 20 crédits par case |
 | Pompe | Irrigue les cultures à 3 cases à la ronde | Prend à la rivière ou à la nappe |
 
-## Les dix missions
+## Les onze missions
 
 Elles sont ordonnées pour introduire une idée à la fois.
 
@@ -84,8 +90,9 @@ Elles sont ordonnées pour introduire une idée à la fois.
 | 6 | La rivière en été | Nappe et étiage | 34 jours : hiver pluvieux puis été sec | Débit d'été +15 % |
 | 7 | Partager l'eau | Irrigation et débit réservé | Idem | Manque d'eau des cultures −45 %, 60 % du débit d'été gardé, 90 % des cultures gardées |
 | 8 | D'où vient la pluie | Boucle complète du cycle | 45 jours, pluie produite par l'évaporation | Évaporation des terres +12 %, manque d'eau −40 %, 90 % des cultures gardées, aucune pompe |
-| 9 | La grande réserve | Retenues de substitution | 70 jours : hiver (remplissage), printemps, été sec | Manque d'eau −50 %, 90 % du débit d'été gardé, 90 % des cultures gardées ; bilan chiffré de la réserve en fin de mission |
-| 10 | Un territoire, quatre saisons | Tout concilier | 34 jours avec orage puis été sec | Ville au sec, pic −15 %, manque d'eau −40 %, 50 % du débit d'été, 80 % des cultures |
+| 9 | La grande réserve | Retenues de substitution | 70 jours : hiver (remplissage), printemps, été sec | Manque d'eau −50 %, 90 % du débit d'été et 80 % du débit d'hiver gardés, nappe pas plus de 1 m plus basse près des forages en fin d'hiver, 90 % des cultures gardées ; encart « Volumes engagés » et encart « Dans la réalité : le débat » |
+| 10 | Les années sèches | Bon cycle de l'eau ou réserves ? | 3 ans d'hivers de moins en moins pluvieux et d'étés très secs | Manque d'eau −25 %, chaque été au moins 90 % du débit de référence, nappe finale au moins au niveau de référence, 90 % des cultures gardées |
+| 11 | Un territoire, quatre saisons | Tout concilier | 34 jours avec orage puis été sec | Ville au sec, pic −15 %, manque d'eau −40 %, 50 % du débit d'été, 80 % des cultures |
 
 Ce que chaque mission cherche à faire comprendre :
 
@@ -98,7 +105,8 @@ Ce que chaque mission cherche à faire comprendre :
 7. Rivière et nappe sont le même réservoir : pomper dans l'une fait baisser l'autre.
 8. L'eau ne se perd pas, elle tourne. Une région végétalisée renvoie vers le ciel une partie de sa pluie.
 9. Stocker l'eau d'hiver déplace le prélèvement dans le temps et protège la rivière d'été, mais prend à la rivière d'hiver, perd de l'eau par évaporation, et laisse une eau stagnante qui se concentre et se réchauffe.
-10. Il n'y a pas d'aménagement miracle : tout se joue sur le même stock, d'une saison à l'autre et de l'amont à l'aval.
+10. Sur plusieurs années sèches, ni les réserves seules (elles se remplissent mal après des hivers secs et prélèvent dans la rivière) ni les seules solutions « bon cycle de l'eau » (elles préservent rivière et nappe mais soulagent peu les cultures dans des étés extrêmes) ne tiennent tous les objectifs ; un mélange sobre y parvient.
+11. Il n'y a pas d'aménagement miracle : tout se joue sur le même stock, d'une saison à l'autre et de l'amont à l'aval.
 
 ## Le modèle
 
@@ -115,8 +123,9 @@ La simulation avance par pas de 10 minutes sur une grille de 44 × 28 cases de t
 7. **Écoulement de surface.** L'eau descend vers les cases voisines plus basses, à une vitesse donnée par la formule de Manning (rugosité, pente, épaisseur de la lame d'eau). Quatre sous-pas par pas de temps.
 8. **Qualité.** Le ruissellement produit sur une case se charge selon l'occupation, voyage avec l'eau, et se décharge en s'infiltrant ou en traversant de la végétation.
 9. **Récolte.** Chaque case cultivée rapporte une part. Une haie dans le champ en retire un dixième, mais chaque champ voisin d'une haie gagne 5 % (8 % s'il touche deux haies ou plus) : abri du vent, sol protégé, insectes utiles ; un champ resté sous l'eau perd jusqu'à 60 % (au bout d'un jour), un champ assoiffé jusqu'à 70 % (au bout de dix jours).
-10. **Réserve**, s'il y en a une : un stock commun à toutes les cases de réserve, qui reçoit la pluie directe, s'évapore à 1,1 fois l'évaporation potentielle, se remplit en pompant la nappe autour d'elle pendant la saison de remplissage tant que cette nappe dépasse 45 % de sa capacité, puis irrigue les cultures proches. L'eau pompée part avec une charge de 20 mg/L (indice), qui se concentre quand l'eau s'évapore ; on compte aussi les jours où l'eau, stockée depuis plus de 20 jours, reste au chaud.
-11. **Atmosphère**, en cycle fermé : elle reçoit l'évaporation de la mer et la moitié de celle des terres ; il pleut quand elle atteint 30 mm.
+10. **Sol vivant et haies.** Une culture en sol vivant infiltre 8 mm/h de plus et garde 20 mm d'eau de plus ; un champ voisin d'une haie évapore 10 % de moins (effet brise-vent). Ce sont des hypothèses prudentes.
+11. **Réserve**, s'il y en a une : un stock commun à toutes les cases de réserve, qui reçoit la pluie directe, s'évapore à 1,1 fois l'évaporation potentielle, se remplit en pompant la nappe autour d'elle pendant la saison de remplissage tant que la nappe moyenne du bassin (un piézomètre de référence) dépasse 50 % de sa capacité, puis irrigue les cultures proches. L'eau pompée part avec une charge de 20 mg/L (indice), qui se concentre quand l'eau s'évapore ; on compte aussi les jours où l'eau, stockée depuis plus de 20 jours, reste au chaud.
+12. **Atmosphère**, en cycle fermé : elle reçoit l'évaporation de la mer et la moitié de celle des terres ; il pleut quand elle atteint 30 mm.
 
 ### Paramètres par occupation du sol
 
@@ -154,11 +163,19 @@ Le jeu a été construit par étapes, à partir de demandes successives.
 10. **Barrages orientés.** La première « digue » rehaussait les cases une à une : on ne voyait pas dans quel sens l'eau arrivait et la crête n'était pas de niveau. Elle est remplacée par un outil Barrage posé d'un clic, qui calcule lui-même la direction de la pente, barre la vallée d'un versant à l'autre et affiche avant la pose la zone qui sera noyée. Le rehaussement case par case reste disponible sous le nom de Remblai, pour les levées le long d'une rive.
 11. **Barrage écrêteur et solutions.** Ajout d'un barrage écrêteur, dont le pertuis laisse passer le débit normal : en mission 10, il évapore une quinzaine de fois moins d'eau qu'un barrage plein et garde un meilleur débit d'été, mais il doit être plus haut pour arrêter la même crue. Chaque mission a désormais un bouton « Solution » avec une stratégie expliquée, applicable d'un clic. Les neuf solutions ont été vérifiées par calcul puis jouées dans un navigateur de test : toutes réussissent leur mission dans le budget.
 12. **La grande réserve.** Nouvelle mission sur les retenues de substitution : pomper la nappe en hiver pour remplir une grande réserve bâchée, puis irriguer en été. Les objectifs reprennent les buts affichés de ces projets (cultures irriguées, débit d'été préservé) ; le bilan de fin de mission chiffre ce qu'ils coûtent (eau pompée, évaporation, qualité, débit d'hiver). À cette occasion, l'irrigation par pompes et réserves a été plafonnée à la capacité du sol : arroser au-delà rechargeait artificiellement la nappe et faussait la comparaison.
+13. **Rendre la nappe visible, et plusieurs années sèches.** Le déficit de la nappe était invisible : une courbe de la nappe, comparée à la référence, s'affiche sous l'hydrogramme, et le bilan indique d'où vient l'eau pompée (environ 85 % de la rivière d'hiver et 15 % de la nappe en hiver normal). Le remplissage dépend désormais d'un seuil sur la nappe moyenne du bassin, et la mission 9 propose un hiver sec : la réserve ne s'y remplit qu'à un tiers. Nouvelle mission « Les années sèches » sur trois ans, avec une nappe plus lente qui garde la mémoire d'une année sur l'autre, pour comparer réserves et « bon cycle de l'eau » ; deux effets agronomiques ont été ajoutés pour une comparaison équitable (sol vivant, effet brise-vent des haies).
+14. **Jeu ou réalité, et fin de partie.** Ajout d'une page qui affirme l'objectif pédagogique du jeu et liste ses différences avec une simulation scientifique, signalée dès la première page du tutoriel. Le bilan de masse du modèle a été vérifié à cette occasion : l'eau est conservée à 0,1 % près. Ajout d'une fenêtre de félicitations quand toutes les missions sont réussies.
+15. **Menu latéral.** Les onze missions ne tenaient plus dans la barre du haut. Elles passent dans un menu ☰ qui regroupe aussi la progression, le bac à sable, l'aide et les informations sur le terrain ; la légende des terrains et l'explication des vues deviennent des fenêtres, ce qui libère l'espace sous la carte.
+16. **Volumes engagés et débat sur les méga-bassines.** Une case de réserve est calée sur une bassine réelle de taille moyenne (environ 310 000 m³). La mission « La grande réserve » affiche en direct la capacité posée et le volume pompé dans la nappe, en millimètres sur la carte et en part de la recharge d'hiver. Deux objectifs font compter ce pompage : garder 80 % du débit d'hiver, et ne pas faire baisser la nappe de plus de 1 m près des forages à la fin de l'hiver. Le bon volume devient un arbitrage : loin de la rivière, le cône se creuse dans la nappe ; près d'elle, c'est la rivière d'hiver qui paie. Un encart « Dans la réalité : le débat » résume, sources à l'appui, les points d'accord et de divergence : volumes du programme des Deux-Sèvres, étude du BRGM et contre-expertise, évaporation, qualité, adaptation ou mal-adaptation, décisions de justice, été 2026. Il rappelle aussi ce que le jeu simplifie, à commencer par l'échelle : 77 km² seulement.
+17. **Fiche de mission, solution et sonde.** Sur grand écran, la fiche de mission a son propre ascenseur, pour rester lisible à côté de la carte. La solution s'ouvre dans une fenêtre qui défile, avec le bouton pour l'appliquer. Avec l'outil « Sonder », un clic sur une case ouvre sa fiche, collée sur le côté droit pour laisser voir le terrain : le type de terrain et ses caractéristiques, comparées comme dans la légende, puis l'état de la case, mis à jour pendant la simulation. La case sondée est entourée en jaune ; sur téléphone, la fiche s'affiche en bas de l'écran.
+18. **Place pour la pluie.** La vue « Humidité du sol » colorait chaque case selon le remplissage de son propre sol : une forêt et une ville à 50 % avaient la même couleur, et la carte restait presque uniforme. Elle est remplacée par « Place pour la pluie », qui montre en millimètres ce que chaque case peut encore absorber en 2 heures d'orage. Les cases deviennent comparables, et la vue répond directement à la question des premières missions : où la prochaine pluie va-t-elle ruisseler ? La fiche de la sonde donne la même valeur, et le cadre « Sonde » du panneau de droite a été retiré, remplacé par cette fiche.
+19. **Commandes sous la carte.** Les commandes qui changent l'affichage de la carte sont regroupées sous elle : choix de la vue (terrain, place pour la pluie, nappe, vitesse, qualité), légende des terrains, 3D ou plan, rotation, zoom et recentrage. Au-dessus restent les outils d'aménagement, le pinceau et la vitesse de simulation. Sur grand écran, la hauteur de la carte s'ajuste pour que ces commandes restent visibles sans faire défiler la page.
+20. **Retours de test.** Le tutoriel s'ouvre à chaque démarrage, avec une case « Ne plus afficher au démarrage ». Choisir un aménagement après une simulation semblait sans effet : le message qui demandait d'arrêter la simulation s'affichait sous la carte, hors de vue. Désormais, choisir un aménagement arrête la simulation et revient à la préparation, avec un message juste sous les outils. La fiche de la sonde reste ouverte quand on passe à un aménagement, et suit la dernière case peinte. Sur grand écran, « État du territoire » et « Bilan depuis le début » forment une troisième colonne, à côté de la fiche de mission.
 
 ### Comment les missions ont été vérifiées
 
 - **Par calcul, hors écran.** Pour chaque mission, le moteur a été lancé sur la référence et sur plusieurs stratégies (une soixantaine au total). Les seuils ont été réglés pour que ne rien faire échoue, qu'au moins une stratégie raisonnable réussisse, et que des stratégies naïves échouent.
-- **Dans un navigateur de test.** Les solutions des dix missions ont été appliquées puis jouées jusqu'au verdict : toutes réussissent. Plusieurs stratégies qui doivent échouer ont aussi été jouées à la souris (trop peu de forêt en mission 1, une seule pompe en mission 7).
+- **Dans un navigateur de test.** Les solutions des onze missions ont été appliquées puis jouées jusqu'au verdict : toutes réussissent. Plusieurs stratégies qui doivent échouer ont aussi été jouées à la souris (trop peu de forêt en mission 1, une seule pompe en mission 7).
 - **Non fait.** Aucun joueur réel n'a encore testé le jeu : la difficulté et la clarté des consignes restent à éprouver.
 
 Exemples de résultats obtenus par calcul :
@@ -171,8 +188,12 @@ Exemples de résultats obtenus par calcul :
 | 2 | Méandres dans la rivière devant la ville seulement | Ville inondée sur 6 cases au lieu de 3 : échec |
 | 4 | Barrage de 4 m juste en amont de la ville (65 crédits) | Pic de 136 à 104 m³/s, ville au sec : réussi |
 | 9 | 8 pompes d'été dans la nappe | Manque d'eau −51 %, mais débit d'été −40 % : échec |
-| 9 | Quatre réserves de 25 ha réparties dans la plaine | Manque d'eau −77 %, débit d'été −5 %, débit d'hiver −24 %, 5 à 6 % de l'eau évaporée : réussi |
+| 9 | Dix bassines d'une case à 7 cases de la rivière (3,1 millions de m³) | Manque d'eau −58 %, débit d'hiver −16 %, nappe jusqu'à 0,65 m plus basse près des forages, 4 % évaporés : réussi. Seize bassines (5 millions de m³) : manque d'eau −77 % mais débit d'hiver −24 % et nappe −1,07 m : échoue |
 | 9 | Une seule réserve de 100 ha | N'arrose qu'à 6 cases autour : les deux tiers de l'eau restent inutilisés |
+| 9 | Même solution, hiver sec | Remplissage autorisé 20 % du temps, réserve remplie à un tiers, manque d'eau −28 % : échec |
+| 10 | Quatre réserves | Manque d'eau −47 %, mais premier été à 80 % du débit de référence : échec |
+| 10 | Sols vivants, haies, prairies, zones humides | Rivière et nappe préservées, manque d'eau −7 à −16 % : échec |
+| 10 | 45 parcelles rendues à la prairie, 1 réserve, 300 sols vivants, 30 haies | Manque d'eau −31 %, chaque été ≥ 95 %, nappe au niveau de référence : réussi |
 | 4 | Remblai le long de la ville | Pic à 125 m³/s, ville encore inondée : échec |
 | 5 | Zone humide sur une case de chaque côté de la rivière | Pollution en mer de 99 à 35 tonnes : réussi |
 | 5 | 85 cases de prairie au milieu de la plaine | Pollution en mer de 99 à 89 tonnes : échec |
@@ -180,6 +201,11 @@ Exemples de résultats obtenus par calcul :
 | 7 | 8 pompes dans la rivière | 41 % du débit d'été gardé : échec |
 
 ## Limites à connaître
+
+Le jeu est une maquette. Par rapport à une étude hydrologique réelle, il n'a ni données mesurées ni calage sur des débits et niveaux de nappe observés ; il raccourcit les saisons à quelques jours ; ses cases de 250 m ne représentent pas le lit réel de la rivière ; sa nappe est une couche uniforme et réactive ; ses sols, cultures, ouvrages et sa qualité de l'eau sont très simplifiés ; il ne donne qu'une réponse, sans marge d'erreur. Les outils réels vont des modèles globaux à quelques réservoirs ([GR4J](https://webgr.inrae.fr/outils/modeles-hydrologiques/modele-hydrologique-journalier-gr4j), d'INRAE) aux modèles de bassin agricole ([SWAT](https://swat.tamu.edu/)) et aux modèles physiques couplés à des modèles de nappe ([MIKE SHE](https://www.dhigroup.com/technologies/mikepoweredbydhi/mike-she), [ParFlow](https://parflow.org/), [MODFLOW](https://www.usgs.gov/software/modflow-6-usgs-modular-hydrologic-model) de l'USGS, [MARTHE](https://www.brgm.fr/fr/logiciel/marthe-logiciel-modelisation-ecoulements-souterrains) du BRGM), toujours calés sur des mesures. Sur un bassin réel, les chiffres du jeu pourraient s'écarter d'un facteur 2 ou plus.
+
+En détail :
+
 
 Ce que le jeu simplifie au point de pouvoir induire en erreur :
 
@@ -189,6 +215,7 @@ Ce que le jeu simplifie au point de pouvoir induire en erreur :
 - **La pollution** est un indice sans unité réelle : les « mg/L » et les tonnes sont des valeurs de jeu. Les nitrates qui descendent vers la nappe ne sont pas simulés.
 - **Le recyclage de la pluie** est grossi. La moitié de l'évaporation des terres retombe sur place, ce qui est plausible pour une grande région, pas pour un bassin de 11 km.
 - **La pluie** tombe partout pareil.
+- **La mission 10** compare des voies dont les effets réels dépendent fortement des sols, des nappes et des cultures. Le gain du sol vivant (+20 mm) et de l'effet brise-vent (−10 %) sont des hypothèses ; la sobriété n'est représentée que par des parcelles rendues à la prairie ; il n'y a pas de changement de cultures ni d'économies d'eau à la parcelle. La nappe y est plus lente que dans les autres missions.
 - **La réserve** est simplifiée. Les saisons sont raccourcies : en réalité l'eau attend plusieurs mois entre remplissage et usage, et l'évaporation cumulée peut être plus forte que les 5 à 6 % du jeu. La charge de la nappe est fixée à 20 (indice) ; les algues ne sont pas simulées, seulement signalées par le nombre de jours d'eau stagnante au chaud ; les effets d'un débit d'hiver réduit sur les milieux (zones humides, poissons) ne sont pas calculés. Le jeu donne des ordres de grandeur sur un cas fictif, pas un avis sur des projets réels, dont l'évaluation fait l'objet de débats.
 
 Ce que le jeu ne montre pas du tout : l'eau potable et les rejets de la ville, l'érosion et l'envasement, l'interception de la pluie par le feuillage, la neige, les milieux vivants que protège le débit minimal, les sécheresses sur plusieurs années et le changement climatique.
@@ -213,5 +240,9 @@ Ce que le jeu ne montre pas du tout : l'eau potable et les rejets de la ville, l
 | `sources/test.js` | Banc de test hors écran : référence et stratégies par mission |
 | `sources/soltest.js` | Vérifie que la solution de chaque mission réussit dans le budget |
 | `sources/restest.js` | Compare pompes d'été et réserves de différentes tailles dans la mission 9 |
+| `sources/mbdry.js` | Mission 9 en hiver normal et en hiver sec |
+| `sources/mdtest.js` | Compare réserves, bon cycle de l'eau et mélanges sur trois ans (mission 10) |
+| `sources/nappe.js` | Suit la nappe et l'eau partie en mer, avec et sans réserves |
+| `sources/bilan.js` | Vérifie que l'eau est conservée (bilan de masse) sur plusieurs missions |
 
 Pour modifier le jeu : éditer `sim.js` (modèle, missions, seuils) ou `template.html` (interface), lancer `node test.js` pour vérifier que les missions restent gagnables (`node test.js m1` pour une seule), puis `python3 build.py` pour régénérer le fichier du jeu. Il faut Node.js et Python 3 ; aucune autre dépendance.
