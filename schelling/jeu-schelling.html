@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Le jeu de Schelling</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout : README dans la colonne de gauche (1/3), le jeu dans les 2/3 de droite ; une seule colonne sur téléphone. */
+:root{
+  --bg:#eef1ea; --panel:#e3e8dd; --fg:#18211c; --muted:#56635b; --line:#c4cdbd;
+  --cell1:#dde4d6; --cell2:#d0d9c8;
+  --cuivre:#b4602a; --argent:#5a6a79; --accent:#17705b; --on-accent:#f3f8f4;
+  --display:"Bricolage Grotesque","Trebuchet MS",sans-serif;
+  --body:"IBM Plex Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#131916; --panel:#1b2420; --fg:#e7ede8; --muted:#9aa8a0; --line:#34413a;
+  --cell1:#202a25; --cell2:#27332d;
+  --cuivre:#dd8a4c; --argent:#c5cfd8; --accent:#6fd1b1; --on-accent:#0f1714; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#131916; --panel:#1b2420; --fg:#e7ede8; --muted:#9aa8a0; --line:#34413a;
+  --cell1:#202a25; --cell2:#27332d;
+  --cuivre:#dd8a4c; --argent:#c5cfd8; --accent:#6fd1b1; --on-accent:#0f1714; color-scheme:dark }
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+.page{max-width:1440px;margin:0 auto;padding-inline:16px;padding-block:24px 40px;
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:32px;align-items:start}
+@media (max-width:900px){.page{grid-template-columns:minmax(0,1fr)}.readme{order:2;position:static;max-height:none}}
+
+/* ---- Colonne README ---- */
+.readme{position:sticky;top:16px;max-height:calc(100vh - 32px);overflow-y:auto;
+  background:var(--panel);border-radius:8px;padding:20px 22px;font-size:14px;min-width:0}
+.readme .tag{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.readme h1{font-family:var(--display);font-size:22px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.readme h2{font-family:var(--display);font-weight:700;font-size:16px;margin:22px 0 6px;text-wrap:balance}
+.readme p,.readme li{color:var(--fg)}
+.readme p{margin:0 0 10px}
+.readme ul,.readme ol{margin:0 0 10px;padding-left:20px}
+.readme li{margin:3px 0}
+.readme code{font-family:var(--mono);font-size:12.5px;background:var(--bg);padding:1px 5px;border-radius:3px}
+.readme .tbl{overflow-x:auto;margin:0 0 10px}
+.readme table{border-collapse:collapse;width:100%;font-size:13px}
+.readme th,.readme td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.readme th{font-weight:600;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.readme td:first-child{white-space:nowrap;font-weight:500}
+
+/* ---- Jeu ---- */
+.jeu{display:flex;flex-direction:column;gap:20px;min-width:0;container-type:inline-size}
+h1.titre{font-family:var(--display);font-weight:700;font-size:clamp(28px,4vw,42px);line-height:1.05;margin:0;letter-spacing:-.02em;text-wrap:balance}
+.lede{margin:8px 0 0;max-width:62ch;color:var(--muted)}
+.lede b{color:var(--fg);font-weight:600}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:24px;align-items:start}
+@container (max-width:640px){.main{grid-template-columns:minmax(0,1fr)}}
+
+.board{display:grid;width:100%;max-width:600px;aspect-ratio:1;border:1px solid var(--line);border-radius:6px;overflow:hidden;touch-action:manipulation}
+.c{--cell:var(--cell1);background:var(--cell);border:0;padding:0;margin:0;display:grid;place-items:center;cursor:default;min-width:0}
+.c.d{--cell:var(--cell2)}
+.c::before{content:"";width:76%;aspect-ratio:1;border-radius:50%}
+.c.a,.c.b{cursor:pointer}
+.c.a::before{background:var(--cuivre)}
+.c.b::before{background:var(--argent)}
+.c.a.u::before{background:radial-gradient(circle,var(--cell) 0 34%,var(--cuivre) 37%)}
+.c.b.u::before{background:radial-gradient(circle,var(--cell) 0 34%,var(--argent) 37%)}
+.c.s{outline:3px solid var(--accent);outline-offset:-3px}
+.c.cible{cursor:pointer}
+.c.cible::before{width:22%;background:color-mix(in srgb,var(--muted) 45%,transparent)}
+.c.cible.ok::before{width:34%;background:var(--accent)}
+.c:focus-visible{outline:3px solid var(--fg);outline-offset:-3px}
+
+.legende{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px;font-size:13px;color:var(--muted);max-width:600px}
+.legende span{display:inline-flex;align-items:center;gap:6px}
+.p{width:14px;height:14px;border-radius:50%;display:inline-block;flex:none}
+.p.a{background:var(--cuivre)} .p.b{background:var(--argent)}
+.p.u{background:radial-gradient(circle,var(--bg) 0 34%,var(--muted) 37%)}
+.p.ok{background:var(--accent);width:9px;height:9px}
+
+.side{display:flex;flex-direction:column;gap:18px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:14px 12px}
+.stat .k{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.stat .v{font-family:var(--mono);font-size:24px;font-variant-numeric:tabular-nums;line-height:1.2}
+.stat.wide{grid-column:1/-1}
+.bar{height:8px;background:var(--panel);border-radius:4px;position:relative;margin-top:6px}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--fg);border-radius:4px}
+.bar em{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--accent)}
+.note{font-size:12.5px;color:var(--muted);margin-top:6px}
+
+.msg{background:var(--panel);border-radius:6px;padding:12px 14px;font-size:14px;min-height:74px}
+.msg b{font-weight:600}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+button.b1,button.b2{font:500 14px var(--body);padding:9px 14px;border-radius:5px;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--fg)}
+button.b1{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+button.b1:hover,button.b2:hover{filter:brightness(1.08)}
+button.b2:hover{background:var(--panel)}
+button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+
+.reglages{border-top:1px solid var(--line);padding-top:16px;display:flex;flex-direction:column;gap:14px}
+.reglages label{display:flex;justify-content:space-between;gap:8px;font-size:13.5px}
+.reglages output{font-family:var(--mono);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--accent);margin:4px 0 0}
+.seg{display:flex;gap:6px;margin-top:4px}
+.seg button{flex:1}
+.seg button[aria-pressed=true]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+</style>
+</head>
+<body>
+<div class="page">
+  <aside class="readme" aria-label="README">
+    <p class="tag">README.md</p>
+<h1>Le jeu de Schelling</h1>
+<p>Un petit jeu sur le modèle de ségrégation de Thomas Schelling (1971). Des pièces de cuivre et d'argent occupent un damier. Chaque pièce accepte d'être en minorité, à condition qu'une part minimale de ses voisines lui ressemble. Votre objectif : <strong>loger tout le monde en gardant la ville plus mixte que le hasard.</strong></p>
+<h2>Le modèle</h2>
+<ul>
+<li>Le damier contient deux groupes de taille égale (cuivre et argent) et des cases vides.</li>
+<li>Les voisines d'une pièce sont les 8 cases qui l'entourent (moins sur les bords).</li>
+<li>Une pièce est <strong>satisfaite</strong> si la part de voisines semblables parmi ses voisines occupées atteint le seuil choisi. Une pièce sans aucune voisine est satisfaite.</li>
+<li>Une pièce insatisfaite veut déménager vers une case vide.</li>
+</ul>
+<h2>Comment jouer</h2>
+<ol>
+<li>Touchez une pièce pour la sélectionner. Les pièces insatisfaites sont <strong>trouées</strong>.</li>
+<li>Les cases vides affichent alors un point. Un <strong>gros point</strong> marque une case où la pièce serait satisfaite.</li>
+<li>Touchez une case vide pour y déménager la pièce. Vous pouvez aussi déplacer une pièce déjà satisfaite.</li>
+<li>La partie est gagnée quand toutes les pièces sont satisfaites <strong>et</strong> que la moyenne de voisins semblables est inférieure au repère du hasard.</li>
+</ol>
+<h2>Les commandes</h2>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Bouton</th>
+<th>Effet</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Laisser faire</td>
+<td>La simulation tourne seule jusqu'à ce que tout le monde soit satisfait.</td>
+</tr>
+<tr>
+<td>Un pas au hasard</td>
+<td>Une pièce insatisfaite, tirée au hasard, déménage.</td>
+</tr>
+<tr>
+<td>Rejouer cette ville</td>
+<td>Repart de la même disposition de départ.</td>
+</tr>
+<tr>
+<td>Nouvelle ville</td>
+<td>Tire une nouvelle disposition au hasard.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Les réglages :</p>
+<ul>
+<li><strong>Voisins semblables exigés</strong> : de 10 % à 75 % (34 % par défaut, soit environ un tiers).</li>
+<li><strong>Cases vides</strong> : de 5 % à 40 % du damier (15 % par défaut).</li>
+<li><strong>Taille du damier</strong> : 8 × 8, 12 × 12 ou 18 × 18.</li>
+</ul>
+<h2>Le repère du hasard</h2>
+<p>À chaque nouvelle ville, le jeu simule en arrière-plan la dynamique « au hasard » : à chaque pas, une pièce insatisfaite tirée au sort déménage vers une case vide où elle serait satisfaite (ou vers n'importe quelle case vide s'il n'y en a aucune). La moyenne de voisins semblables obtenue à la fin sert de repère, affiché par le trait vert sur la jauge.</p>
+<h2>Ce que montre le jeu</h2>
+<p>Des préférences modérées suffisent à produire une forte ségrégation. Avec un seuil d'un tiers, la ville laissée à elle-même finit généralement avec une large majorité de voisins semblables, bien au-delà de ce que chacun demandait.</p>
+<ul>
+<li><strong>On ne peut pas déduire les intentions du résultat.</strong> Une ville très ségréguée ne prouve pas que ses habitants sont très intolérants.</li>
+<li><strong>L'équilibre mixte est fragile.</strong> Chaque départ rend l'ancien quartier moins mixte et le nouveau plus homogène, ce qui peut déclencher d'autres départs en chaîne.</li>
+<li><strong>La coordination change l'issue.</strong> En choisissant vous-même les déménagements, vous pouvez satisfaire tout le monde avec une ville plus mixte.</li>
+</ul>
+<p>Le modèle montre que des préférences modérées <em>suffisent</em> à produire la ségrégation, pas qu'elles en sont la cause réelle. Dans les villes réelles, les revenus, les prix du logement, les politiques publiques et les discriminations jouent aussi un rôle important.</p>
+<h2>Fichiers</h2>
+<ul>
+<li><code>jeu-schelling.html</code> : le jeu complet, avec ce README affiché dans la colonne de gauche. Il suffit de l'ouvrir dans un navigateur.</li>
+<li><code>README.md</code> : ce document.</li>
+</ul>
+<p>Aucune installation n'est nécessaire. La page charge seulement des polices depuis Google Fonts ; hors ligne, elle utilise des polices système. Les réglages sont mémorisés dans le navigateur (localStorage).</p>
+<h2>Référence</h2>
+<p>Thomas C. Schelling, « Dynamic Models of Segregation », <em>Journal of Mathematical Sociology</em>, vol. 1, n° 2, 1971, p. 143-186.</p>
+  </aside>
+
+  <main class="jeu">
+    <header>
+      <h1 class="titre">Le jeu de Schelling</h1>
+      <p class="lede">Chaque pièce accepte d'être en minorité, tant qu'une part minimale de ses voisines lui ressemble. <b>Votre but : loger tout le monde en gardant la ville plus mixte que le hasard.</b></p>
+    </header>
+
+    <div class="main">
+      <div>
+        <div class="board" id="board" role="grid" aria-label="Damier de la ville"></div>
+        <div class="legende">
+          <span><i class="p a"></i>Cuivre</span>
+          <span><i class="p b"></i>Argent</span>
+          <span><i class="p u"></i>Insatisfait (pièce trouée)</span>
+          <span><i class="p ok"></i>Case où la pièce choisie serait satisfaite</span>
+        </div>
+      </div>
+
+      <div class="side">
+        <div class="stats">
+          <div class="stat"><div class="k">Satisfaits</div><div class="v" id="sSat">–</div></div>
+          <div class="stat"><div class="k">Déménagements</div><div class="v" id="sMov">0</div></div>
+          <div class="stat wide">
+            <div class="k">Voisins semblables, en moyenne</div>
+            <div class="v" id="sSim">–</div>
+            <div class="bar"><i id="barSim"></i><em id="barCible"></em></div>
+            <div class="note" id="sCible"></div>
+          </div>
+        </div>
+
+        <div class="msg" id="msg" aria-live="polite"></div>
+
+        <div class="btns">
+          <button class="b1" id="bAuto">Laisser faire</button>
+          <button class="b2" id="bPas">Un pas au hasard</button>
+          <button class="b2" id="bRejouer">Rejouer cette ville</button>
+          <button class="b2" id="bNew">Nouvelle ville</button>
+        </div>
+
+        <div class="reglages">
+          <div>
+            <label for="rThr"><span>Voisins semblables exigés</span><output id="oThr"></output></label>
+            <input type="range" id="rThr" min="10" max="75" step="1" value="34">
+          </div>
+          <div>
+            <label for="rVide"><span>Cases vides</span><output id="oVide"></output></label>
+            <input type="range" id="rVide" min="5" max="40" step="5" value="15">
+          </div>
+          <div>
+            <label><span>Taille du damier</span></label>
+            <div class="seg" id="seg">
+              <button class="b2" data-n="8">8 × 8</button>
+              <button class="b2" data-n="12">12 × 12</button>
+              <button class="b2" data-n="18">18 × 18</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const board=$('board');
+let n=12, thr=34, vide=15;
+let grid, init, moves=0, sel=-1, usedAuto=false, target=null, timer=null, cells=[];
+
+try{ const s=JSON.parse(localStorage.getItem('schelling')||'null'); if(s){ n=[8,12,18].includes(s.n)?s.n:12; thr=Math.min(75,Math.max(10,s.thr|0))||34; vide=Math.min(40,Math.max(5,s.vide|0))||15; } }catch(e){}
+function save(){ try{ localStorage.setItem('schelling',JSON.stringify({n,thr,vide})); }catch(e){} }
+
+// part de voisins semblables autour de la case i pour une pièce de type t ; excl = case à ignorer (l'ancienne place)
+function voisins(g,i,t,excl){
+  const r=(i/n)|0,c=i%n; let same=0,tot=0;
+  for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+    if(!dr&&!dc)continue; const rr=r+dr,cc=c+dc;
+    if(rr<0||cc<0||rr>=n||cc>=n)continue;
+    const j=rr*n+cc; if(j===excl)continue;
+    const v=g[j]; if(v){tot++; if(v===t)same++;}
+  }
+  return [same,tot];
+}
+function content(g,i,t,excl){ const [s,t2]=voisins(g,i,t,excl); return t2===0 || s*100>=thr*t2; }
+function bilan(g){
+  let occ=0,ok=0,sum=0,cnt=0; const mal=[];
+  for(let i=0;i<g.length;i++){ const t=g[i]; if(!t)continue; occ++;
+    const [s,tot]=voisins(g,i,t,-1);
+    if(tot){sum+=s/tot;cnt++;}
+    if(tot===0||s*100>=thr*tot)ok++; else mal.push(i);
+  }
+  return {sat:occ?ok/occ:1, sim:cnt?sum/cnt:0, mal};
+}
+function pasHasard(g){
+  const b=bilan(g); if(!b.mal.length)return false;
+  const u=b.mal[(Math.random()*b.mal.length)|0], t=g[u];
+  const vides=[]; for(let i=0;i<g.length;i++)if(!g[i])vides.push(i);
+  if(!vides.length)return false;
+  const bons=vides.filter(i=>content(g,i,t,u));
+  const pool=bons.length?bons:vides;
+  const d=pool[(Math.random()*pool.length)|0];
+  g[d]=t; g[u]=0; return true;
+}
+function simuler(src){
+  const g=src.slice(); let k=0;
+  while(k<4000 && pasHasard(g))k++;
+  const b=bilan(g); return {sim:b.sim, fini:b.mal.length===0};
+}
+
+function nouvelle(){
+  const N=n*n, nv=Math.max(1,Math.round(N*vide/100)), occ=N-nv;
+  const arr=[]; for(let i=0;i<N;i++)arr.push(i<nv?0:(i-nv<occ/2?1:2));
+  for(let i=N-1;i>0;i--){const j=(Math.random()*(i+1))|0;[arr[i],arr[j]]=[arr[j],arr[i]];}
+  init=Int8Array.from(arr); rejouer();
+}
+function rejouer(){
+  stopAuto(); grid=init.slice(); moves=0; sel=-1; usedAuto=false;
+  target=simuler(init); construire(); rendu();
+}
+function construire(){
+  if(cells.length!==n*n){
+    board.innerHTML=''; cells=[];
+    board.style.gridTemplateColumns='repeat('+n+',1fr)';
+    for(let i=0;i<n*n;i++){
+      const b=document.createElement('button'); b.type='button'; b.dataset.i=i;
+      b.className='c'+((((i/n)|0)+i%n)%2?' d':''); board.appendChild(b); cells.push(b);
+    }
+  }
+}
+const pct=x=>Math.round(x*100)+' %';
+function rendu(){
+  const b=bilan(grid), mal=new Set(b.mal), selT=sel>=0?grid[sel]:0;
+  for(let i=0;i<cells.length;i++){
+    const t=grid[i], el=cells[i]; let k='c'+((((i/n)|0)+i%n)%2?' d':'');
+    const pos='ligne '+(((i/n)|0)+1)+', colonne '+(i%n+1);
+    if(t){ k+=t===1?' a':' b'; if(mal.has(i))k+=' u'; if(i===sel)k+=' s';
+      el.setAttribute('aria-label',(t===1?'Cuivre':'Argent')+(mal.has(i)?', insatisfait, ':', satisfait, ')+pos); }
+    else { if(selT){k+=' cible'; if(content(grid,i,selT,sel))k+=' ok';}
+      el.setAttribute('aria-label','Case vide, '+pos); }
+    if(el.className!==k)el.className=k;
+  }
+  $('sSat').textContent=pct(b.sat); $('sMov').textContent=moves; $('sSim').textContent=pct(b.sim);
+  $('barSim').style.width=(b.sim*100)+'%';
+  $('barCible').style.left='calc('+(target.sim*100)+'% - 1px)';
+  $('sCible').textContent='Repère : le hasard finit à '+pct(target.sim)+(target.fini?'':' (sans loger tout le monde)')+' sur cette ville.';
+  const m=$('msg');
+  if(!b.mal.length){
+    stopAuto();
+    let t='<b>Tout le monde est satisfait.</b> Chacun demandait '+thr+' % de voisins semblables ; la ville en compte '+pct(b.sim)+' en moyenne. ';
+    if(moves===0) t+='Cette ville était déjà stable : essayez un seuil plus élevé.';
+    else if(usedAuto) t+='Rejouez cette ville à la main pour tenter de faire plus mixte.';
+    else if(b.sim<target.sim-0.005) t+='Vous battez le hasard ('+pct(target.sim)+') en '+moves+' déménagements.';
+    else t+='Le hasard arrive à '+pct(target.sim)+'. Rejouez cette ville pour faire plus mixte.';
+    m.innerHTML=t;
+  } else if(sel>=0){
+    m.innerHTML='Choisissez une case vide. Les <b>gros points</b> sont les cases où cette pièce serait satisfaite.';
+  } else {
+    m.innerHTML='<b>'+b.mal.length+' pièce'+(b.mal.length>1?'s':'')+' insatisfaite'+(b.mal.length>1?'s':'')+'.</b> Touchez une pièce, puis une case vide pour la déménager. Vous pouvez aussi déplacer une pièce satisfaite.';
+  }
+  $('bAuto').textContent=timer?'Arrêter':'Laisser faire';
+}
+
+board.addEventListener('click',e=>{
+  const el=e.target.closest('.c'); if(!el)return; const i=+el.dataset.i;
+  if(grid[i]){ sel=(sel===i)?-1:i; }
+  else if(sel>=0){ grid[i]=grid[sel]; grid[sel]=0; sel=-1; moves++; }
+  rendu();
+});
+function stopAuto(){ if(timer){clearInterval(timer);timer=null;} }
+$('bAuto').onclick=()=>{
+  if(timer){stopAuto();rendu();return;}
+  sel=-1; usedAuto=true; let garde=0;
+  timer=setInterval(()=>{ if(pasHasard(grid)){moves++;} if(++garde>6000)stopAuto(); rendu(); },n>12?35:70);
+  rendu();
+};
+$('bPas').onclick=()=>{ sel=-1; if(pasHasard(grid)){moves++;usedAuto=true;} rendu(); };
+$('bRejouer').onclick=rejouer;
+$('bNew').onclick=nouvelle;
+
+function etiquettes(){ $('oThr').textContent=thr+' %'; $('oVide').textContent=vide+' %';
+  $('rThr').value=thr; $('rVide').value=vide;
+  document.querySelectorAll('#seg button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.n===n))); }
+$('rThr').oninput=e=>{thr=+e.target.value;etiquettes();};
+$('rThr').onchange=()=>{save();rejouer();};
+$('rVide').oninput=e=>{vide=+e.target.value;etiquettes();};
+$('rVide').onchange=()=>{save();nouvelle();};
+$('seg').onclick=e=>{const b=e.target.closest('button'); if(!b)return; n=+b.dataset.n; save(); etiquettes(); nouvelle();};
+
+function start(d){
+  if(d&&d.grid&&d.init&&d.grid.length===d.n*d.n){
+    n=d.n;thr=d.thr;vide=d.vide; init=Int8Array.from(d.init); grid=Int8Array.from(d.grid);
+    moves=d.moves|0; usedAuto=!!d.usedAuto; etiquettes(); target=simuler(init); construire(); rendu();
+  } else { etiquettes(); nouvelle(); }
+}
+const hot=window.claude&&window.claude.hot;
+if(hot&&hot.snapshot)hot.snapshot(()=>({n,thr,vide,moves,usedAuto,grid:Array.from(grid),init:Array.from(init)}));
+if(hot&&hot.ready)hot.ready(start); else start((hot&&hot.data)||{});
+})();
+</script>
+</body>
+</html>
