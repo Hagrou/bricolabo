@@ -2,6 +2,8 @@
 
 Un petit jeu sur le modèle de ségrégation de Thomas Schelling (1971). Des pièces de cuivre et d'argent occupent un damier. Chaque pièce accepte d'être en minorité, à condition qu'une part minimale de ses voisines lui ressemble. Votre objectif : **loger tout le monde en gardant la ville plus mixte que le hasard.**
 
+Le jeu ext ici : [jeu-schelling.html](https://hagrou.github.io/bricolabo/schelling/jeu-schelling.html): le jeu complet, avec ce README affiché dans la colonne de gauche. Il suffit de l'ouvrir dans un navigateur.
+
 ## Le modèle
 
 - Le damier contient deux groupes de taille égale (cuivre et argent) et des cases vides.
@@ -44,13 +46,6 @@ Des préférences modérées suffisent à produire une forte ségrégation. Avec
 - **La coordination change l'issue.** En choisissant vous-même les déménagements, vous pouvez satisfaire tout le monde avec une ville plus mixte.
 
 Le modèle montre que des préférences modérées *suffisent* à produire la ségrégation, pas qu'elles en sont la cause réelle. Dans les villes réelles, les revenus, les prix du logement, les politiques publiques et les discriminations jouent aussi un rôle important.
-
-## Fichiers
-
-- [jeu-schelling.html](https://hagrou.github.io/bricolabo/schelling/jeu-schelling.html): le jeu complet, avec ce README affiché dans la colonne de gauche. Il suffit de l'ouvrir dans un navigateur.
-- `README.md` : ce document.
-
-Aucune installation n'est nécessaire. La page charge seulement des polices depuis Google Fonts ; hors ligne, elle utilise des polices système. Les réglages sont mémorisés dans le navigateur (localStorage).
 
 ## Référence
 
